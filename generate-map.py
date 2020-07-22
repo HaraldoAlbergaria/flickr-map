@@ -84,7 +84,7 @@ for pg in range(1, npages+1):
         n = n + 1
         photo = page[ph]
         exists = False
-        if getGeoPrivacy(photo) == config.geo_privacy and config.dont_map_tag.lower() not in photo['tags']:
+        if (config.geo_privacy == 0 or getGeoPrivacy(photo) == config.geo_privacy) and config.dont_map_tag.lower() not in photo['tags']:
             for coord in coordinates:
                 if photo['longitude'] == coord[0][0] and photo['latitude'] == coord[0][1]:
                     coord[1].append([photo['id'], photo['url_sq']])
