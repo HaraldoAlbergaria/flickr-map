@@ -8,11 +8,23 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import flickrapi
-import api_credentials
 import json
-import config
 import os
+import sys
 
+run_path = os.path.dirname(os.path.realpath(__file__))
+
+if os.path.exists("{}/config.py".format(run_path)):
+    import config
+else:
+    print("ERROR: File 'config.py' not found. Create one and try again.")
+    sys.exit()
+
+if os.path.exists("{}/api_credentials.py".format(run_path)):
+    import api_credentials
+else:
+    print("ERROR: File 'api_credentials.py' not found. Create one and try again.")
+    sys.exit()
 
 # Credentials
 api_key = api_credentials.api_key
@@ -21,9 +33,6 @@ user_id = api_credentials.user_id
 
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
-
-# Script run path
-run_path = os.path.dirname(os.path.realpath(__file__))
 
 
 #===== FUNCTIONS ==============================================================#
@@ -46,13 +55,25 @@ def getGeoPrivacy(photo):
 
 #===== MAIN CODE ==============================================================#
 
-header_file = open("{}/header.html".format(run_path))
-header = header_file.readlines()
-header_file.close()
+if os.path.exists("{}/header.html".format(run_path)):
+    header_file = open("{}/header.html".format(run_path))
+    header = header_file.readlines()
+    header_file.close()
+else:
+    print("ERROR: FATAL: File 'header.html' is missing. Unable to run.")
+    sys.exit()
 
-mapbox_token_file = open("{}/mapbox_token".format(run_path))
-mapbox_token_lines = mapbox_token_file.readlines()
-mapbox_token_file.close()
+if os.path.exists("{}/mapbox_token".format(run_path)):
+    mapbox_token_file = open("{}/mapbox_token".format(run_path))
+    mapbox_token_lines = mapbox_token_file.readlines()
+    mapbox_token_file.close()
+    if mapbox_token_lines == []:
+        print("ERROR: File 'mapbox_token' is empty. Add a valid token and try again.")
+        sys.exit()
+
+else:
+    print("ERROR: File 'mapbox_token' not found. Create one and try again.")
+    sys.exit()
 
 mapbox_token = mapbox_token_lines[0].replace('\n','')
 
