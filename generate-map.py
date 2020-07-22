@@ -23,7 +23,7 @@ user_id = api_credentials.user_id
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
 
 # Script run path
-run_path = config.run_path
+run_path = os.path.dirname(os.path.realpath(__file__))
 
 
 #===== FUNCTIONS ==============================================================#
@@ -46,17 +46,17 @@ def getGeoPrivacy(photo):
 
 #===== MAIN CODE ==============================================================#
 
-header_file = open("{}header.html".format(run_path))
+header_file = open("{}/header.html".format(run_path))
 header = header_file.readlines()
 header_file.close()
 
-mapbox_token_file = open("{}mapbox_token".format(run_path))
+mapbox_token_file = open("{}/mapbox_token".format(run_path))
 mapbox_token_lines = mapbox_token_file.readlines()
 mapbox_token_file.close()
 
 mapbox_token = mapbox_token_lines[0].replace('\n','')
 
-map_file = open("{}map.html".format(run_path), 'w')
+map_file = open("{}/map.html".format(run_path), 'w')
 
 for line in header:
     if line == '    mapboxgl.accessToken = \'\';\n':
@@ -72,7 +72,7 @@ total = int(photos['photos']['total'])
 coordinates = []
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
 
-print('### Flickr Map ###')
+print('############## Flickr Map ##############')
 print('{} photos will be mapped'.format(total))
 print('Extracting photos coordinates and ids...')
 

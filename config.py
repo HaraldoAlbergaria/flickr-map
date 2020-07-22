@@ -1,10 +1,3 @@
-# Script run path
-run_path = '/home/pi/flickr_map/'
-
-# Photos with this tag
-# won't be included on map
-dont_map_tag = 'DontMap'
-
 # Photo Privacy Filter:
 # 1 = public photos
 # 2 = private photos visible to friends
@@ -21,3 +14,7 @@ photo_privacy = 1
 # 5 = Your friends and family
 # 6 = Only you
 geo_privacy = 1
+
+# Photos with this tag
+# won't be included on map
+dont_map_tag = 'DontMap'
