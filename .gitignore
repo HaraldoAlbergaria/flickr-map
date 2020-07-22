@@ -1,4 +1,5 @@
 api_credentials.py
 mapbox_token
 map.html
+*.sh
 __pycache__
