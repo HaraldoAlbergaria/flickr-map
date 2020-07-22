@@ -26,9 +26,25 @@ flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
 run_path = config.run_path
 
 
-#===== MAIN CODE ==============================================================#
+#===== FUNCTIONS ==============================================================#
 
-#os.system('cp {0}header.html {0}map.html'.format(run_path))
+# Function to get photo's geo privacy
+def getGeoPrivacy(photo):
+    if photo['geo_is_public'] == 1:
+        return 1
+    if photo['geo_is_contact'] == 1:
+        return 2
+    if photo['geo_is_friend'] == 1 and photo['geo_is_family'] == 0:
+        return 3
+    if photo['geo_is_friend'] == 0 and photo['geo_is_family'] == 1:
+        return 4
+    if photo['geo_is_friend'] == 1 and photo['geo_is_family'] == 1:
+        return 5
+    if photo['geo_is_friend'] == 0 and photo['geo_is_family'] == 0:
+        return 6
+
+
+#===== MAIN CODE ==============================================================#
 
 header_file = open("{}header.html".format(run_path))
 header = header_file.readlines()
@@ -48,7 +64,7 @@ for line in header:
     else:
         map_file.write(line)
 
-photos = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, per_page='500')
+photos = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, per_page='500')
 
 npages = int(photos['photos']['pages'])
 total = int(photos['photos']['total'])
@@ -56,17 +72,19 @@ total = int(photos['photos']['total'])
 coordinates = []
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
 
+print('### Flickr Map ###')
+print('{} photos will be mapped'.format(total))
 print('Extracting photos coordinates and ids...')
 
 n = 0
 for pg in range(1, npages+1):
-    page = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, page=pg, per_page='500', extras='geo,tags,url_sq')['photos']['photo']
+    page = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page='500')['photos']['photo']
     photos_in_page = len(page)
     for ph in range(0, photos_in_page):
         n = n + 1
         photo = page[ph]
         exists = False
-        if photo['ispublic'] == 1 and photo['geo_is_public'] == 1 and config.dont_map_tag.lower() not in photo['tags']:
+        if getGeoPrivacy(photo) == config.geo_privacy and config.dont_map_tag.lower() not in photo['tags']:
             for coord in coordinates:
                 if photo['longitude'] == coord[0][0] and photo['latitude'] == coord[0][1]:
                     coord[1].append([photo['id'], photo['url_sq']])
@@ -74,6 +92,7 @@ for pg in range(1, npages+1):
             if not exists:
                 coordinates.append([[photo['longitude'], photo['latitude']], [[photo['id'], photo['url_sq']]]])
 
+print('Done!')
 print('Adding markers...')
 
 m = 0
@@ -89,9 +108,9 @@ for marker_info in coordinates:
         map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
     map_file.write("\"]);\n")
 
+print('Done!\n{} markers were added'.format(m))
+
 map_file.write("\n        return locations;\n\n    }\n\n</script>\n\n")
 map_file.write("\n</body>\n</html>\n\n")
 map_file.close()
-
-print('Finished!')
 
