@@ -33,6 +33,7 @@ user_id = api_credentials.user_id
 
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
+photos_per_page = '500'
 
 
 #===== FUNCTIONS ==============================================================#
@@ -77,6 +78,8 @@ else:
 
 mapbox_token = mapbox_token_lines[0].replace('\n','')
 
+real_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
+
 map_file = open("{}/map.html".format(run_path), 'w')
 
 for line in header:
@@ -84,8 +87,10 @@ for line in header:
         map_file.write("    mapboxgl.accessToken = \'{}\';\n".format(mapbox_token))
     else:
         map_file.write(line)
+    if line == '<meta charset=\"utf-8\" />\n':
+        map_file.write("  <title>{} | Photos Map</title>\n".format(real_name))
 
-photos = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, per_page='500')
+photos = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
 
 npages = int(photos['photos']['pages'])
 total = int(photos['photos']['total'])
@@ -99,10 +104,10 @@ print('Extracting photos coordinates and ids...')
 
 n = 0
 for pg in range(1, npages+1):
-    page = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page='500')['photos']['photo']
+    page = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
     photos_in_page = len(page)
     for ph in range(0, photos_in_page):
-        n = n + 1
+        n += 1
         photo = page[ph]
         exists = False
         if (config.geo_privacy == 0 or getGeoPrivacy(photo) == config.geo_privacy) and config.dont_map_tag.lower() not in photo['tags']:
@@ -119,7 +124,7 @@ print('Adding markers...')
 m = 0
 n_markers = len(coordinates)
 for marker_info in coordinates:
-    m = m + 1
+    m += 1
     longitude = marker_info[0][0]
     latitude = marker_info[0][1]
     map_file.write("        locations.push([[{0}, {1}], \"".format(longitude, latitude))
