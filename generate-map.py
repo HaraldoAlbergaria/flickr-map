@@ -140,8 +140,8 @@ for marker_info in coordinates:
         photo_url = photos_base_url + photo[0]
         thumb_url = photo[1]
         map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
-        map_file.write("\"]);\n")
         print('Added {0}/{1}'.format(m, n_markers), end='\r')
+    map_file.write("\"]);\n")
 
 print('\nFinished!')
 
