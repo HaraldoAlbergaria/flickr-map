@@ -1,6 +1,6 @@
 # Flickr Map
 
-This script generates a map with markers for all photos in the user's Flickr™ photostream. Click [here](https://hpfilho.github.io/FlickrMap/example/) to see an example.
+This script generates a map with markers for all photos in a user's Flickr™ photostream. Click [here](https://hpfilho.github.io/FlickrMap/example/) to see an example.
 
 ## Installation
 
@@ -53,8 +53,15 @@ Then, type the following command in the terminal:
 
 ## Configuration
 
+Edit the file 'config.py' and add the user for whom the map will be generated. It can be the user alias or id.
+
+```
+# user alias or id
+user = 'hpfilho'
+```
+
 By default, the script will generate the map marking only the public photos on the user's photostream, and those with a geolocation set as visible to anyone. 
-This can be changed by editing the file 'config.py', and setting the values of the variables _photo_privacy_ and/or _geo_privacy_ as indicated:
+This can be changed by editing the variables _photo_privacy_ and/or _geo_privacy_:
 
 ```
 # Photo Privacy Filter:
@@ -76,6 +83,7 @@ photo_privacy = 1
 # 6 = Only you
 geo_privacy = 1
 ```
+But only the authenticated user will be able to see the privated photos of your own photostream, i.e. when generating for a different user only the public photos will be visible, independently of this configuration.
 
 There is one more option that can be changed, the variable _dont_map_tag_. To exclude a photo from the map, define a tag in this variable and add the same tag to the photo. 
 The default tag is _DontMap_:
@@ -102,12 +110,14 @@ The output will be like this:
 
 ```
 ############## Flickr Map ##############
-1064 photos will be mapped
-Extracting photos coordinates and ids...
-Done!
-Adding markers...
-Done!
-533 markers were added
+Generating map for 'Haraldo Albergaria'
+1064 photos in the photostream
+Extracting photo coordinates and ids...
+Processed photo 1064/1064
+958 photos will be attached to markers
+Adding markers to map...
+Added 533/533
+Finished!
 ```
 
 The map is generated in the file __'map.html'__, which can be opened in a web browser, such as _Google Chrome_ and _Microsoft Edge_ 
