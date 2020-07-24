@@ -29,7 +29,6 @@ else:
 # Credentials
 api_key = api_credentials.api_key
 api_secret = api_credentials.api_secret
-user_id = api_credentials.user_id
 
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
@@ -78,6 +77,7 @@ else:
 
 mapbox_token = mapbox_token_lines[0].replace('\n','')
 
+user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(config.user))['user']['id']
 real_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
 
 map_file = open("{}/map.html".format(run_path), 'w')
@@ -90,7 +90,7 @@ for line in header:
     if line == '<meta charset=\"utf-8\" />\n':
         map_file.write("  <title>{} | Photos Map</title>\n".format(real_name))
 
-photos = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
+photos = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
 
 npages = int(photos['photos']['pages'])
 total = int(photos['photos']['total'])
@@ -99,27 +99,35 @@ coordinates = []
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
 
 print('############## Flickr Map ##############')
-print('{} photos will be mapped'.format(total))
-print('Extracting photos coordinates and ids...')
+print('Generating map for \'{}\''.format(real_name))
+print('{} photos in the photostream'.format(total))
+print('Extracting photo coordinates and ids...')
 
 n = 0
+e = 0
+m = 0
 for pg in range(1, npages+1):
-    page = flickr.photos.getWithGeoData(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
+    page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
     photos_in_page = len(page)
     for ph in range(0, photos_in_page):
         n += 1
         photo = page[ph]
         exists = False
-        if (config.geo_privacy == 0 or getGeoPrivacy(photo) == config.geo_privacy) and config.dont_map_tag.lower() not in photo['tags']:
+        longitude = photo['longitude']
+        latitude = photo['latitude']
+        if (longitude != 0 and latitude != 0) and (config.geo_privacy == 0 or getGeoPrivacy(photo) == config.geo_privacy) and config.dont_map_tag.lower() not in photo['tags']:
+            m += 1
             for coord in coordinates:
-                if photo['longitude'] == coord[0][0] and photo['latitude'] == coord[0][1]:
+                if longitude == coord[0][0] and latitude == coord[0][1]:
                     coord[1].append([photo['id'], photo['url_sq']])
                     exists = True
             if not exists:
-                coordinates.append([[photo['longitude'], photo['latitude']], [[photo['id'], photo['url_sq']]]])
+                coordinates.append([[longitude, latitude], [[photo['id'], photo['url_sq']]]])
+    e += photos_in_page
+    print('Processed photo {0}/{1}'.format(e, total), end='\r')
 
-print('Done!')
-print('Adding markers...')
+print('\n{} photos will be attached to markers'.format(m))
+print('Adding markers to map...')
 
 m = 0
 n_markers = len(coordinates)
@@ -132,9 +140,10 @@ for marker_info in coordinates:
         photo_url = photos_base_url + photo[0]
         thumb_url = photo[1]
         map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
-    map_file.write("\"]);\n")
+        map_file.write("\"]);\n")
+        print('Added {0}/{1}'.format(m, n_markers), end='\r')
 
-print('Done!\n{} markers were added'.format(m))
+print('\nFinished!')
 
 map_file.write("\n        return locations;\n\n    }\n\n</script>\n\n")
 map_file.write("\n</body>\n</html>\n\n")

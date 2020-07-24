@@ -1,3 +1,6 @@
+# user alias or id
+user = 'hpfilho'
+
 # Photo Privacy Filter:
 # 0 = all photos (public and private)
 # 1 = public photos
