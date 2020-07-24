@@ -12,14 +12,17 @@ import json
 import os
 import sys
 
+# get full script's path
 run_path = os.path.dirname(os.path.realpath(__file__))
 
+# check if there is a config file and import it
 if os.path.exists("{}/config.py".format(run_path)):
     import config
 else:
     print("ERROR: File 'config.py' not found. Create one and try again.")
     sys.exit()
 
+# check if there is a api_credentials file and import it
 if os.path.exists("{}/api_credentials.py".format(run_path)):
     import api_credentials
 else:
@@ -52,9 +55,16 @@ def getGeoPrivacy(photo):
     if photo['geo_is_friend'] == 0 and photo['geo_is_family'] == 0:
         return 6
 
+# Function to verify if there is geo tag info
+def isGeoTagged(photo):
+    if photo['longitude'] != 0 and photo['latitude'] != 0:
+        return True
+    return False
+
 
 #===== MAIN CODE ==============================================================#
 
+# check if there is a header file and read it
 if os.path.exists("{}/header.html".format(run_path)):
     header_file = open("{}/header.html".format(run_path))
     header = header_file.readlines()
@@ -63,6 +73,7 @@ else:
     print("ERROR: FATAL: File 'header.html' is missing. Unable to run.")
     sys.exit()
 
+# check if there is a mapbox token file and get the token
 if os.path.exists("{}/mapbox_token".format(run_path)):
     mapbox_token_file = open("{}/mapbox_token".format(run_path))
     mapbox_token_lines = mapbox_token_file.readlines()
@@ -70,61 +81,92 @@ if os.path.exists("{}/mapbox_token".format(run_path)):
     if mapbox_token_lines == []:
         print("ERROR: File 'mapbox_token' is empty. Add a valid token and try again.")
         sys.exit()
-
+    mapbox_token = mapbox_token_lines[0].replace('\n','')
 else:
     print("ERROR: File 'mapbox_token' not found. Create one and try again.")
     sys.exit()
 
-mapbox_token = mapbox_token_lines[0].replace('\n','')
-
+# get user id from user url on config file
 user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(config.user))['user']['id']
-real_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
 
+# try get user real name, but if doesn't exist get the username
+try:
+    user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
+except:
+    user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
+
+# create output map file
 map_file = open("{}/map.html".format(run_path), 'w')
 
+# read reader and write to map
 for line in header:
+
     if line == '    mapboxgl.accessToken = \'\';\n':
+       # add mapbox access token
         map_file.write("    mapboxgl.accessToken = \'{}\';\n".format(mapbox_token))
     else:
         map_file.write(line)
+
     if line == '<meta charset=\"utf-8\" />\n':
-        map_file.write("  <title>{} | Photos Map</title>\n".format(real_name))
+        # add map page title
+        map_file.write("  <title>{} | Photos Map</title>\n".format(user_name))
 
-photos = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
-
-npages = int(photos['photos']['pages'])
-total = int(photos['photos']['total'])
-
+# get user's photos base url
 coordinates = []
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
 
-print('############## Flickr Map ##############')
-print('Generating map for \'{}\''.format(real_name))
-print('{} photos in the photostream'.format(total))
+print('################ Flickr Map ################')
+
+try:
+    photos = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
+    npages = int(photos['photoset']['pages'])
+    total = int(photos['photoset']['total'])
+    print('Generating map for \'{}\''.format(user_name))
+    print('Photoset \'{}\''.format(photos['photoset']['title']))
+    print('{} photos in the photoset'.format(total))
+    mode = 'photoset'
+except:
+    photos = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
+    npages = int(photos['photos']['pages'])
+    total = int(photos['photos']['total'])
+    if config.photoset_id != '':
+        print('ERROR: Invalid photoset id.\nSwitching to user\'s photostream...')
+    print('Generating map for \'{}\''.format(user_name))
+    print('{} photos in the photostream'.format(total))
+    mode = 'photostream'
+
 print('Extracting photo coordinates and ids...')
 
 n = 0
 e = 0
 m = 0
 for pg in range(1, npages+1):
-    page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
+    if mode == 'photoset':
+        page = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photoset']['photo']
+    else:
+        page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
     photos_in_page = len(page)
     for ph in range(0, photos_in_page):
         n += 1
         photo = page[ph]
         exists = False
-        longitude = photo['longitude']
-        latitude = photo['latitude']
-        if (longitude != 0 and latitude != 0) and (config.geo_privacy == 0 or getGeoPrivacy(photo) == config.geo_privacy) and config.dont_map_tag.lower() not in photo['tags']:
+        if isGeoTagged(photo) and (config.geo_privacy == 0 or getGeoPrivacy(photo) == config.geo_privacy) and config.dont_map_tag.lower() not in photo['tags']:
             m += 1
             for coord in coordinates:
-                if longitude == coord[0][0] and latitude == coord[0][1]:
+                if photo['longitude'] == coord[0][0] and photo['latitude'] == coord[0][1]:
                     coord[1].append([photo['id'], photo['url_sq']])
                     exists = True
             if not exists:
-                coordinates.append([[longitude, latitude], [[photo['id'], photo['url_sq']]]])
+                coordinates.append([[photo['longitude'], photo['latitude']], [[photo['id'], photo['url_sq']]]])
     e += photos_in_page
     print('Processed photo {0}/{1}'.format(e, total), end='\r')
+
+if m == 0:
+    if mode == 'photoset':
+        print('No geo tagged photo on the user photoset\nMap not generated')
+    else:
+        print('No geo tagged photo on the user photostream\nMap not generated')
+    sys.exit()
 
 print('\n{} photos will be attached to markers'.format(m))
 print('Adding markers to map...')

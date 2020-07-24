@@ -1,5 +1,12 @@
-# user alias or id
+# User alias or id:
 user = 'hpfilho'
+
+# Photoset id:
+# If this is defined the map will
+# be generated for the photoset
+# To generate for entire user's
+# photostream, leave it empty
+photoset_id = ''
 
 # Photo Privacy Filter:
 # 0 = all photos (public and private)
