@@ -117,6 +117,13 @@ There is also a script to generate a map for groups in the directory 'groups'. T
 
 ```
 cd groups
+```
+Add the mapbox token running the following command:
+```
+% echo "[YOUR TOKEN]" > mapbox_token
+```
+Then, setup a group:
+```
 ./setup-group.sh group_alias
 cd group_alias
 ```
@@ -126,6 +133,7 @@ cd groups
 ./setup-group.sh group_id
 cd group_id
 ```
+
 
 ## Usage
 
