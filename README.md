@@ -53,12 +53,25 @@ Then, type the following command in the terminal:
 
 ## Configuration
 
-Edit the file 'config.py' and add the user for whom the map will be generated. It can be the user alias or id.
+Open the file 'config.py' and edit it as following:
+
+Add the user for whom the map will be generated. It can be the user alias or id.
 
 ```
 # user alias or id
 user = 'hpfilho'
 ```
+
+The map can be generated for just the photos on a user's photoset. In this case, add a valid photoset id to the _photoset_id_ variable.:
+```
+# Photoset id:
+# If this is defined the map will
+# be generated for the photoset
+# To generate for entire user's
+# photostream, leave it empty
+photoset_id = ''
+```
+If the variable is empty or have a invalid id the map will be generated for the entire user's photostream.
 
 By default, the script will generate the map marking only the public photos on the user's photostream, and those with a geolocation set as visible to anyone. 
 This can be changed by editing the variables _photo_privacy_ and/or _geo_privacy_:
@@ -97,6 +110,22 @@ dont_map_tag = 'DontMap'
 There is an additional file needed to run the script: '__header.html__'. This file contains the initial _html_ and _javascript_ code of the map page. 
 
 So, __DO NOT DELETE IT!__
+
+### Script for Groups
+
+There is also a script to generate a map for groups in the directory 'groups'. To configure a group just run the following commands:
+
+```
+cd groups
+./setup-group.sh group_alias
+cd group_alias
+```
+or
+```
+cd groups
+./setup-group.sh group_id
+cd group_id
+```
 
 ## Usage
 
