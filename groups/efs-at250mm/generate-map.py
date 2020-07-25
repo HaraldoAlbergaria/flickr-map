@@ -71,11 +71,14 @@ else:
     print("ERROR: File 'mapbox_token' not found. Create one and try again.")
     sys.exit()
 
-# get group id from group url on config file
-group_id = flickr.urls.lookupGroup(api_key=api_key, url='flickr.com/groups/{}'.format(config.group))['group']['id']
-
-# get group name
-group_name = flickr.groups.getInfo(api_key=api_key, group_id=group_id)['group']['name']['_content']
+try:
+    # get group id from group url on config file
+    group_id = flickr.urls.lookupGroup(api_key=api_key, url='flickr.com/groups/{}'.format(config.group))['group']['id']
+    # get group name
+    group_name = flickr.groups.getInfo(api_key=api_key, group_id=group_id)['group']['name']['_content']
+except:
+    print('ERROR: FATAL: Group doesn\'t exist')
+    sys.exit()
 
 # create output map file
 map_file = open("{}/map.html".format(run_path), 'w')
