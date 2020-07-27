@@ -36,6 +36,7 @@ api_secret = api_credentials.api_secret
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
 photos_per_page = '500'
+max_number_of_pages = 20
 
 
 #===== FUNCTIONS ==============================================================#
@@ -140,6 +141,12 @@ print('Extracting photo coordinates and ids...')
 n = 0
 e = 0
 m = 0
+
+if npages > max_number_of_pages:
+    npages = max_number_of_pages
+    total = max_number_of_pages * int(photos_per_page);
+    print("Extracting for the last {} photos".format(total))
+
 for pg in range(1, npages+1):
     if mode == 'photoset':
         page = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photoset']['photo']
@@ -177,17 +184,17 @@ for marker_info in coordinates:
     m += 1
     longitude = marker_info[0][0]
     latitude = marker_info[0][1]
-    map_file.write("        locations.push([[{0}, {1}], \"".format(longitude, latitude))
+    map_file.write("            [[{0}, {1}], \"".format(longitude, latitude))
     for photo in marker_info[1]:
         photo_url = photos_base_url + photo[0]
         thumb_url = photo[1]
         map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
         print('Added {0}/{1}'.format(m, n_markers), end='\r')
-    map_file.write("\"]);\n")
+    map_file.write("\"],\n")
 
 print('\nFinished!')
 
-map_file.write("\n        return locations;\n\n    }\n\n</script>\n\n")
+map_file.write("        ]\n\n        return locations;\n\n    }\n\n</script>\n\n")
 map_file.write("\n</body>\n</html>\n\n")
 map_file.close()
 
