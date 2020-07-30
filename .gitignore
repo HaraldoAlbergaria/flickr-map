@@ -1,6 +1,0 @@
-api_credentials.py
-mapbox_token
-map.html
-*.sh
-!groups/setup-group.sh
-__pycache__
