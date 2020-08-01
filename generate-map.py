@@ -96,27 +96,11 @@ try:
 except:
     user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
 
-# create output map file
-map_file = open("{}/map.html".format(run_path), 'w')
-
-# read reader and write to map
-for line in header:
-
-    if line == '    mapboxgl.accessToken = \'\';\n':
-       # add mapbox access token
-        map_file.write("    mapboxgl.accessToken = \'{}\';\n".format(mapbox_token))
-    else:
-        map_file.write(line)
-
-    if line == '<meta charset=\"utf-8\" />\n':
-        # add map page title
-        map_file.write("  <title>{} | Photos Map</title>\n".format(user_name))
-
 # get user's photos base url
 coordinates = []
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
 
-print('################ Flickr Map ################')
+print('################## Flickr Map ##################')
 
 try:
     photos = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
@@ -135,6 +119,30 @@ except:
     print('Generating map for \'{}\''.format(user_name))
     print('{} photos in the photostream'.format(total))
     mode = 'photostream'
+
+if os.path.exists("{}/last_total.py".format(run_path)):
+    import last_total
+    if total == last_total.number:
+        print('No changes on number of photos since last run.\nAborted.')
+        sys.exit()
+else:
+    os.system("echo \"number = {0}\" > {1}/last_total.py".format(total, run_path))
+
+
+# create output map file
+map_file = open("{}/map.html".format(run_path), 'w')
+
+# read reader and write to map
+for line in header:
+    if line == '    mapboxgl.accessToken = \'\';\n':
+       # add mapbox access token
+        map_file.write("    mapboxgl.accessToken = \'{}\';\n".format(mapbox_token))
+    else:
+        map_file.write(line)
+    if line == '<meta charset=\"utf-8\" />\n':
+        # add map page title
+        map_file.write("  <title>{} | Photos Map</title>\n".format(user_name))
+
 
 print('Extracting photo coordinates and ids...')
 
