@@ -81,10 +81,28 @@ except:
     print('ERROR: FATAL: Group doesn\'t exist')
     sys.exit()
 
+coordinates = []
+
+print('################## Flickr Map ##################')
+
+photos = flickr.groups.pools.getPhotos(api_key=api_key, group_id=group_id, per_page=photos_per_page)
+npages = int(photos['photos']['pages'])
+total = int(photos['photos']['total'])
+print('Generating map for \'{}\''.format(group_name))
+print('{} photos in the pool'.format(total))
+
+if os.path.exists("{}/last_total.py".format(run_path)):
+    import last_total
+    if total == last_total.number:
+        print('No changes on number of photos since last run.\nAborted.')
+        sys.exit()
+
+os.system("echo \"number = {0}\" > {1}/last_total.py".format(total, run_path))
+
 # create output map file
 map_file = open("{}/map.html".format(run_path), 'w')
 
-# read reader and write to map
+# read header and write to map
 for line in header:
     if line == '    mapboxgl.accessToken = \'\';\n':
         # add mapbox access token
@@ -95,16 +113,6 @@ for line in header:
     if line == '<meta charset=\"utf-8\" />\n':
         # add map page title
         map_file.write("  <title>Group \'{}\' | Photos Map</title>\n".format(group_name))
-
-coordinates = []
-
-print('################ Flickr Map ################')
-
-photos = flickr.groups.pools.getPhotos(api_key=api_key, group_id=group_id, per_page=photos_per_page)
-npages = int(photos['photos']['pages'])
-total = int(photos['photos']['total'])
-print('Generating map for \'{}\''.format(group_name))
-print('{} photos in the pool'.format(total))
 
 print('Extracting photo coordinates and ids...')
 

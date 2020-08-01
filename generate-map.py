@@ -125,9 +125,8 @@ if os.path.exists("{}/last_total.py".format(run_path)):
     if total == last_total.number:
         print('No changes on number of photos since last run.\nAborted.')
         sys.exit()
-else:
-    os.system("echo \"number = {0}\" > {1}/last_total.py".format(total, run_path))
 
+os.system("echo \"number = {0}\" > {1}/last_total.py".format(total, run_path))
 
 # create output map file
 map_file = open("{}/map.html".format(run_path), 'w')
