@@ -90,11 +90,8 @@ else:
 # get user id from user url on config file
 user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(config.user))['user']['id']
 
-# try get user real name, but if doesn't exist get the username
-try:
-    user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
-except:
-    user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
+# get the username
+user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
 
 # get user's photos base url
 coordinates = []
