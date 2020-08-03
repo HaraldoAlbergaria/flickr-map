@@ -36,7 +36,8 @@ api_secret = api_credentials.api_secret
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
 photos_per_page = '500'
-max_number_of_pages = 20
+max_number_of_pages = 500
+max_number_of_photos = 5000
 
 
 #===== FUNCTIONS ==============================================================#
@@ -97,7 +98,7 @@ user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['u
 coordinates = []
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
 
-print('################## Flickr Map ##################')
+print('###################### Flickr Map ######################')
 
 try:
     photos = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
@@ -169,8 +170,13 @@ for pg in range(1, npages+1):
                     exists = True
             if not exists:
                 coordinates.append([[photo['longitude'], photo['latitude']], [[photo['id'], photo['url_sq']]]])
+        if m >= max_number_of_photos:
+            break
     e += photos_in_page
-    print('Processed photo {0}/{1}'.format(e, total), end='\r')
+    print('Processed photo {0}/{1} | {2} photos on map'.format(e, total, m), end='\r')
+    if m >= max_number_of_photos:
+        print("\nMaximum number of photos on map reached!")
+        break
 
 if m == 0:
     if mode == 'photoset':
@@ -179,7 +185,7 @@ if m == 0:
         print('No geo tagged photo on the user photostream\nMap not generated')
     sys.exit()
 
-print('\n{} photos will be attached to markers'.format(m))
+print('{} photos will be attached to markers'.format(m))
 print('Adding markers to map...')
 
 m = 0
