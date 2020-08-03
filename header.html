@@ -35,6 +35,7 @@ font-family: 'Open Sans', sans-serif; cursor: default; }
         zoom: 1.5
     });
 
+    map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
     map.addControl(new mapboxgl.NavigationControl());
 
     var layerList = document.getElementById('menu');
@@ -56,7 +57,7 @@ font-family: 'Open Sans', sans-serif; cursor: default; }
     function addMarker(value) {
         new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
             .setLngLat(value[0])
-            .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px'}).setHTML(value[1]))
+            .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px'}).setHTML(value[1]))
             .addTo(map);
     }
 

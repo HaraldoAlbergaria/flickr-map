@@ -36,8 +36,9 @@ api_secret = api_credentials.api_secret
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
 photos_per_page = '500'
-max_number_of_pages = 500
-max_number_of_photos = 5000
+max_number_of_pages = 200
+max_photos = 50000
+max_markers = 5000
 
 
 #===== FUNCTIONS ==============================================================#
@@ -145,6 +146,7 @@ print('Extracting photo coordinates and ids...')
 
 n = 0
 e = 0
+p = 0
 m = 0
 
 if npages > max_number_of_pages:
@@ -163,30 +165,34 @@ for pg in range(1, npages+1):
         photo = page[ph]
         exists = False
         if isGeoTagged(photo) and (config.geo_privacy == 0 or getGeoPrivacy(photo) == config.geo_privacy) and config.dont_map_tag.lower() not in photo['tags']:
-            m += 1
+            p += 1
             for coord in coordinates:
                 if photo['longitude'] == coord[0][0] and photo['latitude'] == coord[0][1]:
                     coord[1].append([photo['id'], photo['url_sq']])
                     exists = True
+                    break
             if not exists:
                 coordinates.append([[photo['longitude'], photo['latitude']], [[photo['id'], photo['url_sq']]]])
-        if m >= max_number_of_photos:
+                m += 1
+        if p >= max_photos or m >= max_markers:
             break
     e += photos_in_page
-    print('Processed photo {0}/{1} | {2} photos on map'.format(e, total, m), end='\r')
-    if m >= max_number_of_photos:
-        print("\nMaximum number of photos on map reached!")
+    print('Batch {0}/{1} | {2} photos in {3} markers'.format(pg, npages, p, m), end='\r')
+    if p >= max_photos:
+        print("\nMaximum number of photos on map reached!", end='')
+        break
+    if m >= max_markers:
+        print("\nMaximum number of markers on map reached!", end='')
         break
 
-if m == 0:
+if p == 0:
     if mode == 'photoset':
-        print('No geo tagged photo on the user photoset\nMap not generated')
+        print('\nNo geo tagged photo on the user photoset\nMap not generated')
     else:
-        print('No geo tagged photo on the user photostream\nMap not generated')
+        print('\nNo geo tagged photo on the user photostream\nMap not generated')
     sys.exit()
 
-print('{} photos will be attached to markers'.format(m))
-print('Adding markers to map...')
+print('\nAdding markers to map...')
 
 m = 0
 n_markers = len(coordinates)
@@ -194,13 +200,13 @@ for marker_info in coordinates:
     m += 1
     longitude = marker_info[0][0]
     latitude = marker_info[0][1]
-    map_file.write("            [[{0}, {1}], \"".format(longitude, latitude))
+    map_file.write("            [[{0}, {1}], \"<div style=\\\"max-height:410px;overflow:auto;\\\">".format(longitude, latitude))
     for photo in marker_info[1]:
         photo_url = photos_base_url + photo[0]
         thumb_url = photo[1]
         map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
         print('Added {0}/{1}'.format(m, n_markers), end='\r')
-    map_file.write("\"],\n")
+    map_file.write("</div>\"],\n")
 
 print('\nFinished!')
 
