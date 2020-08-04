@@ -36,7 +36,9 @@ api_secret = api_credentials.api_secret
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
 photos_per_page = '500'
-max_number_of_pages = 20
+max_number_of_pages = 200
+max_photos = 50000
+max_markers = 5000
 
 
 #===== FUNCTIONS ==============================================================#
@@ -76,14 +78,14 @@ try:
     # get group id from group url on config file
     group_id = flickr.urls.lookupGroup(api_key=api_key, url='flickr.com/groups/{}'.format(config.group))['group']['id']
     # get group name
-    group_name = flickr.groups.getInfo(api_key=api_key, group_id=group_id)['group']['name']['_content']
+    group_name = flickr.groups.getInfo(api_key=api_key, group_id=group_id)['group']['name']['_content'][:30]
 except:
     print('ERROR: FATAL: Group doesn\'t exist')
     sys.exit()
 
 coordinates = []
 
-print('################## Flickr Map ##################')
+print('###################### Flickr Map ######################')
 
 photos = flickr.groups.pools.getPhotos(api_key=api_key, group_id=group_id, per_page=photos_per_page)
 npages = int(photos['photos']['pages'])
@@ -123,7 +125,9 @@ if npages > max_number_of_pages:
 
 n = 0
 e = 0
+p = 0
 m = 0
+
 for pg in range(1, npages+1):
     page = flickr.groups.pools.getPhotos(api_key=api_key, group_id=group_id, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
     photos_in_page = len(page)
@@ -132,22 +136,31 @@ for pg in range(1, npages+1):
         photo = page[ph]
         exists = False
         if isGeoTagged(photo):
-            m += 1
+            p += 1
             for coord in coordinates:
                 if photo['longitude'] == coord[0][0] and photo['latitude'] == coord[0][1]:
                     coord[1].append([photo['owner'], photo['id'], photo['url_sq']])
                     exists = True
+                    break
             if not exists:
                 coordinates.append([[photo['longitude'], photo['latitude']], [[photo['owner'], photo['id'], photo['url_sq']]]])
+                m += 1
+        if p >= max_photos or m >= max_markers:
+            break
     e += photos_in_page
-    print('Processed photo {0}/{1}'.format(e, total), end='\r')
+    print('Batch {0}/{1} | {2} photos in {3} markers'.format(pg, npages, p, m), end='\r')
+    if p >= max_photos:
+        print("\nMaximum number of photos on map reached!", end='')
+        break
+    if m >= max_markers:
+        print("\nMaximum number of markers on map reached!", end='')
+        break
 
-if m == 0:
-    print('No geo tagged photo on the group pool\nMap not generated')
+if p == 0:
+    print('\nNo geo tagged photo on the group pool\nMap not generated')
     sys.exit()
 
-print('\n{} photos will be attached to markers'.format(m))
-print('Adding markers to map...')
+print('\nAdding markers to map...')
 
 m = 0
 n_markers = len(coordinates)
@@ -155,13 +168,13 @@ for marker_info in coordinates:
     m += 1
     longitude = marker_info[0][0]
     latitude = marker_info[0][1]
-    map_file.write("            [[{0}, {1}], \"".format(longitude, latitude))
+    map_file.write("            [[{0}, {1}], \"<div style=\\\"max-height:410px;overflow:auto;\\\">".format(longitude, latitude))
     for photo in marker_info[1]:
         photo_url = 'https://www.flickr.com/photos/{}/{}/in/pool-{}/'.format(photo[0], photo[1], config.group)
         thumb_url = photo[2]
         map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
         print('Added {0}/{1}'.format(m, n_markers), end='\r')
-    map_file.write("\"],\n")
+    map_file.write("</div>\"],\n")
 
 print('\nFinished!')
 

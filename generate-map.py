@@ -93,7 +93,7 @@ else:
 user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(config.user))['user']['id']
 
 # get the username
-user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
+user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content'][:30]
 
 # get user's photos base url
 coordinates = []
