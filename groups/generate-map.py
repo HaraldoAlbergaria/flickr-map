@@ -35,10 +35,12 @@ api_secret = api_credentials.api_secret
 
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
+
+# Limits
 photos_per_page = '500'
 max_number_of_pages = 200
-max_photos = 50000
-max_markers = 5000
+max_number_of_photos = max_number_of_pages * int(photos_per_page)
+max_number_of_markers = 5000
 
 
 #===== FUNCTIONS ==============================================================#
@@ -145,14 +147,14 @@ for pg in range(1, npages+1):
             if not exists:
                 coordinates.append([[photo['longitude'], photo['latitude']], [[photo['owner'], photo['id'], photo['url_sq']]]])
                 m += 1
-        if p >= max_photos or m >= max_markers:
+        if p >= max_number_of_photos or m >= max_number_of_markers:
             break
     e += photos_in_page
     print('Batch {0}/{1} | {2} photos in {3} markers'.format(pg, npages, p, m), end='\r')
-    if p >= max_photos:
+    if p >= max_number_of_photos:
         print("\nMaximum number of photos on map reached!", end='')
         break
-    if m >= max_markers:
+    if m >= max_number_of_markers:
         print("\nMaximum number of markers on map reached!", end='')
         break
 
@@ -169,12 +171,14 @@ for marker_info in coordinates:
     longitude = marker_info[0][0]
     latitude = marker_info[0][1]
     map_file.write("            [[{0}, {1}], \"<div style=\\\"max-height:410px;overflow:auto;\\\">".format(longitude, latitude))
+    p = 0
     for photo in marker_info[1]:
         photo_url = 'https://www.flickr.com/photos/{}/{}/in/pool-{}/'.format(photo[0], photo[1], config.group)
         thumb_url = photo[2]
         map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
-        print('Added {0}/{1}'.format(m, n_markers), end='\r')
-    map_file.write("</div>\"],\n")
+        p += 1
+    print('Added {0}/{1}'.format(m, n_markers), end='\r')
+    map_file.write("</div>\", {}],\n".format(p))
 
 print('\nFinished!')
 

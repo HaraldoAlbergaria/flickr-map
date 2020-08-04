@@ -55,10 +55,21 @@ font-family: 'Open Sans', sans-serif; cursor: default; }
     locations.forEach(addMarker);
 
     function addMarker(value) {
-        new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
-            .setLngLat(value[0])
-            .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px'}).setHTML(value[1]))
-            .addTo(map);
+
+        if (value[2] <= 35) {
+
+            new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
+                .setLngLat(value[0])
+                .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px'}).setHTML(value[1]))
+                .addTo(map);
+        } else {
+
+            new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
+                .setLngLat(value[0])
+                .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px'}).setHTML(value[1]))
+                .addTo(map);
+        }
+
     }
 
     function getLocations() {
