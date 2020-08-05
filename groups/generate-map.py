@@ -116,7 +116,7 @@ for line in header:
 
     if line == '<meta charset=\"utf-8\" />\n':
         # add map page title
-        map_file.write("  <title>Group \'{}\' | Photos Map</title>\n".format(group_name))
+        map_file.write("<title>{} | Photos Map</title>\n".format(group_name))
 
 print('Extracting photo coordinates and ids...')
 
