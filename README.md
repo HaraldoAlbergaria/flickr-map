@@ -146,14 +146,13 @@ Just run the script:
 The output will be like this:
 
 ```
-############## Flickr Map ##############
-Generating map for 'Haraldo Albergaria'
-1064 photos in the photostream
+###################### Flickr Map ######################
+Generating map for 'H. P. Filho'
+1065 photos in the photostream
 Extracting photo coordinates and ids...
-Processed photo 1064/1064
-958 photos will be attached to markers
+Batch 3/3 | 958 photos in 531 markers
 Adding markers to map...
-Added 533/533
+Added 531/531
 Finished!
 ```
 
