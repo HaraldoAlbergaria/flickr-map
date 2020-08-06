@@ -28,12 +28,16 @@ font-family: 'Open Sans', sans-serif; cursor: default; }
 <script>
 
     mapboxgl.accessToken = '';
+    
     var map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [0, 30],
-        zoom: 1.5
+        style: 'mapbox://styles/mapbox/streets-v11'
     });
+
+    map.fitBounds([
+        [-168, -58],
+        [180, 82]
+    ]);
 
     map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
     map.addControl(new mapboxgl.NavigationControl());
