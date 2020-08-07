@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<script src="locations.js"></script>
 <script src="https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js"></script>
 <link href="https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css" rel="stylesheet" />
 <style>
@@ -48,8 +49,6 @@ font-family: 'Open Sans', sans-serif; cursor: default; }
     for (var i = 0; i < inputs.length; i++) {
         inputs[i].onclick = switchLayer;
     }
-
-    var locations = getLocations();
 
     var west = 180;
     var south = 90;
@@ -98,6 +97,9 @@ font-family: 'Open Sans', sans-serif; cursor: default; }
 
     }
 
-    function getLocations() {
+</script>
 
-        var locations = [
+
+</body>
+</html>
+

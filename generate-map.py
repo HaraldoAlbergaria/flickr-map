@@ -12,6 +12,7 @@ import json
 import os
 import sys
 
+
 # get full script's path
 run_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -70,12 +71,12 @@ def isGeoTagged(photo):
 #===== MAIN CODE ==============================================================#
 
 # check if there is a header file and read it
-if os.path.exists("{}/header.html".format(run_path)):
-    header_file = open("{}/header.html".format(run_path))
-    header = header_file.readlines()
-    header_file.close()
+if os.path.exists("{}/map.html".format(run_path)):
+    map_file = open("{}/map.html".format(run_path))
+    map = map_file.readlines()
+    map_file.close()
 else:
-    print("ERROR: FATAL: File 'header.html' is missing. Unable to run.")
+    print("ERROR: FATAL: File 'map.html' is missing. Unable to run.")
     sys.exit()
 
 # check if there is a mapbox token file and get the token
@@ -130,19 +131,20 @@ if os.path.exists("{}/last_total.py".format(run_path)):
 os.system("echo \"number = {0}\" > {1}/last_total.py".format(total, run_path))
 
 # create output map file
-map_file = open("{}/map.html".format(run_path), 'w')
+index_file = open("{}/index.html".format(run_path), 'w')
 
 # read reader and write to map
-for line in header:
+for line in map:
     if line == '    mapboxgl.accessToken = \'\';\n':
        # add mapbox access token
-        map_file.write("    mapboxgl.accessToken = \'{}\';\n".format(mapbox_token))
+        index_file.write("    mapboxgl.accessToken = \'{}\';\n".format(mapbox_token))
     else:
-        map_file.write(line)
+        index_file.write(line)
     if line == '<meta charset=\"utf-8\" />\n':
         # add map page title
-        map_file.write("<title>{} | Photos Map</title>\n".format(user_name))
+        index_file.write("<title>{} | Photos Map</title>\n".format(user_name))
 
+index_file.close()
 
 print('Extracting photo coordinates and ids...')
 
@@ -177,7 +179,7 @@ for pg in range(1, npages+1):
                 coordinates.append([[photo['longitude'], photo['latitude']], [[photo['id'], photo['url_sq']]]])
                 m += 1
         if p >= max_number_of_photos or m >= max_number_of_markers:
-            break
+           break
     e += photos_in_page
     print('Batch {0}/{1} | {2} photos in {3} markers'.format(pg, npages, p, m), end='\r')
     if p >= max_number_of_photos:
@@ -196,25 +198,26 @@ if p == 0:
 
 print('\nAdding markers to map...')
 
+locations_file = open("{}/locations.js".format(run_path), 'w')
+locations_file.write("var locations = [\n")
+
 m = 0
 n_markers = len(coordinates)
 for marker_info in coordinates:
     m += 1
     longitude = marker_info[0][0]
     latitude = marker_info[0][1]
-    map_file.write("            [[{0}, {1}], \"<div style=\\\"max-height:410px;overflow:auto;\\\">".format(longitude, latitude))
+    locations_file.write("    [[{0}, {1}], \"<div style=\\\"max-height:410px;overflow:auto;\\\">".format(longitude, latitude))
     p = 0
     for photo in marker_info[1]:
         photo_url = photos_base_url + photo[0]
         thumb_url = photo[1]
-        map_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
+        locations_file.write("<a href=\\\"{0}\\\" target=\\\"_blank\\\"><img src=\\\"{1}\\\"/></a> ".format(photo_url, thumb_url))
         p += 1
-    map_file.write("</div>\", {}],\n".format(p))
+    locations_file.write("</div>\", {}],\n".format(p))
     print('Added {0}/{1}'.format(m, n_markers), end='\r')
 
 print('\nFinished!')
 
-map_file.write("        ]\n\n        return locations;\n\n    }\n\n</script>\n\n")
-map_file.write("\n</body>\n</html>\n\n")
-map_file.close()
-
+locations_file.write("]\n")
+locations_file.close()
