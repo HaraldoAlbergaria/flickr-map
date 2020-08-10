@@ -144,7 +144,10 @@ os.system("echo \"number = {0}\" > {1}/last_total.py".format(total, run_path))
 if delta_total > 0:
     total = delta_total
     if total != delta_total:
-        print('{} new photos'.format(total))
+        print('{} new photo(s)'.format(total))
+else:
+    n_deleted = delta_total * -1
+    print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
 
 # open map output file for writting
 index_file = open("{}/index.html".format(run_path), 'w')
@@ -224,7 +227,7 @@ for pg in range(1, npages+1):
         if n_photos >= total or n_photos >= max_number_of_photos or n_markers >= max_number_of_markers:
            break
 
-    print('Batch {0}/{1} | {2} photos in {3} markers'.format(pg, npages, n_photos, n_markers), end='\r')
+    print('Batch {0}/{1} | {2} photo(s) in {3} marker(s)'.format(pg, npages, n_photos, n_markers), end='\r')
 
     # stop processing pages if any limit was reached
     if n_photos >= total:
@@ -244,7 +247,7 @@ if n_photos == 0:
         print('\nNo geo tagged photo on the user photostream\nMap not generated')
     sys.exit()
 
-print('\nAdding markers to map...')
+print('\nAdding marker(s) to map...')
 
 # check if there is java script file with the markers on map already
 # and readt it otherwise created a new one
@@ -278,9 +281,9 @@ locations_js_file.write("var locations = [\n")
 # get the number of markers (locations) already on map
 n_locations = len(locations)
 if n_locations > 0:
-    print('Map already has {} markers'.format(n_locations))
+    print('Map already has {} marker(s)'.format(n_locations))
 
-# counts the number of new photos to be added
+# counts the number of new photos added to markers
 new_photos = 0
 
 # process each marker info already on map
@@ -337,6 +340,16 @@ coordinates.reverse()
 n_markers = len(coordinates)
 if n_markers > 0:
     print('{} new marker(s) will be added to the map'.format(n_markers))
+
+# remove the oldest locations to make
+# room for new markers without violate
+# the max number of markers limit
+new_locations_length = len(locations) + n_markers
+if new_locations_length >= max_number_of_markers:
+    new_locations_length = max_number_of_markers - n_markers
+    print('Max number of markers reached. Removing {} marker(s)...'.format(n_markers))
+    while len(locations) > new_locations_length:
+        locations.pop(0)
 
 new_markers = 0
 
