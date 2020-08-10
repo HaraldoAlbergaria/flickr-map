@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<script src="locations.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css" rel="stylesheet" />
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+#menu { position: absolute; background: #fff; padding: 10px;
+font-family: 'Open Sans', sans-serif; cursor: default; }
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+<div id="menu">
+<input id="streets-v11" type="radio" name="rtoggle" value="streets" checked="checked" />
+<label for="streets-v11">streets</label>
+<input id="outdoors-v11" type="radio" name="rtoggle" value="outdoors" />
+<label for="outdoors-v11">outdoors</label>
+<input id="satellite-v9" type="radio" name="rtoggle" value="satellite" />
+<label for="satellite-v9">satellite</label>
+</div>
+
+<script>
+
+    mapboxgl.accessToken = '';
+    
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11'
+    });
+
+    map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
+    map.addControl(new mapboxgl.NavigationControl());
+
+    var layerList = document.getElementById('menu');
+    var inputs = layerList.getElementsByTagName('input');
+
+    function switchLayer(layer) {
+        var layerId = layer.target.id;
+        map.setStyle('mapbox://styles/mapbox/' + layerId);
+    }
+
+    for (var i = 0; i < inputs.length; i++) {
+        inputs[i].onclick = switchLayer;
+    }
+
+    var west = -160;
+    var south = -20;
+    var east = 180;
+    var north = 60;
+
+    locations.forEach(addMarker);
+
+    map.fitBounds([
+        [west, south],
+        [east, north]],
+        {padding: 50}
+    );
+
+    function addMarker(value) {
+
+        if (value[2] <= 35) {
+
+            new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
+                .setLngLat(value[0])
+                .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px'}).setHTML(value[1]))
+                .addTo(map);
+        } else {
+
+            new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
+                .setLngLat(value[0])
+                .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px'}).setHTML(value[1]))
+                .addTo(map);
+        }
+
+    }
+
+</script>
+
+
+</body>
+</html>
+
