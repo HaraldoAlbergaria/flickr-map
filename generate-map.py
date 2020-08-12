@@ -11,7 +11,27 @@ import flickrapi
 import json
 import os
 import sys
+import time
 import math
+
+from geopy.geocoders import Nominatim
+#from countries_bbox import countries_bbox
+
+
+# ================= CONFIGURATION VARIABLES =====================
+
+# Limits
+photos_per_page = '500'
+max_number_of_pages = 200
+max_number_of_photos = max_number_of_pages * int(photos_per_page)
+max_number_of_markers = 5000
+
+#geocoder
+geo_accuracy = 0.001
+geo_zoom = 18
+
+# ===============================================================
+
 
 # get full script's path
 run_path = os.path.dirname(os.path.realpath(__file__))
@@ -37,11 +57,12 @@ api_secret = api_credentials.api_secret
 # Flickr api access
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='parsed-json')
 
-# Limits
-photos_per_page = '500'
-max_number_of_pages = 200
-max_number_of_photos = max_number_of_pages * int(photos_per_page)
-max_number_of_markers = 5000
+# get geolocator
+try:
+    geolocator = Nominatim(user_agent="flickr_map")
+except:
+    print("ERROR: FATAL: Unable to get geolocator")
+    sys.exit()
 
 
 #===== FUNCTIONS ==============================================================#
@@ -146,7 +167,7 @@ if delta_total > 0:
     if total != delta_total:
         print('{} new photo(s)'.format(total))
 else:
-    n_deleted = delta_total * -1
+    n_deleted = abs(delta_total)
     print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
 
 # open map output file for writting
@@ -249,7 +270,7 @@ if n_photos == 0:
 
 print('\nAdding marker(s) to map...')
 
-# check if there is java script file with the markers on map already
+# check if there is javascript file with the markers on map already
 # and readt it otherwise created a new one
 if os.path.exists("{}/locations.js".format(run_path)):
     locations_js_file = open("{}/locations.js".format(run_path))
@@ -271,6 +292,9 @@ locations_py_file.write("locations = [\n")
 for i in range(1, len(locations_js_lines)):
     locations_py_file.write(locations_js_lines[i])
 locations_py_file.close()
+
+time.sleep(1)
+
 from locations import locations
 os.system("rm {}/locations.py".format(run_path))
 
@@ -297,7 +321,7 @@ for loc in range(n_locations):
     n_coords = len(coordinates)
 
     # iterate over each coordinate
-    for coord in range(n_coords):
+    for coord in range(n_coords-1, -1, -1):
 
         # if there is already a marker on the same coordinate
         if coordinates[coord][0] == locations[loc][0]:
@@ -353,6 +377,42 @@ if new_locations_length >= max_number_of_markers:
 
 new_markers = 0
 
+# check if there is javascript file with the countries already mapped
+if os.path.exists("{}/countries.js".format(run_path)):
+    countries_js_file = open("{}/countries.js".format(run_path))
+else:
+    countries_js_file = open("{}/countries.js".format(run_path), 'w')
+    countries_js_file.write("var countries = [\n")
+    countries_js_file.write("]\n")
+    countries_js_file.close()
+    countries_js_file = open("{}/countries.js".format(run_path))
+
+# read the file and store it
+countries_js_lines = countries_js_file.readlines()
+countries_js_file.close()
+
+# create a python file with the existing countries,
+# import it and delete it
+countries_py_file = open("{}/countries.py".format(run_path), 'w')
+countries_py_file.write("countries = [\n")
+for i in range(1, len(countries_js_lines)):
+    countries_py_file.write(countries_js_lines[i])
+countries_py_file.close()
+
+time.sleep(1)
+
+from countries import countries
+os.system("rm {}/countries.py".format(run_path))
+
+# create a new javascript file to store new countries
+countries_js_file = open("{}/countries.js".format(run_path), 'w')
+countries_js_file.write("var countries = [\n")
+
+# stores the previous values for comparison
+prev_latitude = 0
+prev_longitude = 0
+prev_country_code = ''
+
 # iterate over each marker to be added
 for marker_info in coordinates:
 
@@ -386,6 +446,36 @@ for marker_info in coordinates:
 
     print('Added marker {0}/{1}'.format(new_markers, n_markers), end='\r')
 
+    # if current location is too near of previous location, skip it
+    delta_latitude = abs(latitude - prev_latitude)
+    delta_longitude = abs(longitude - prev_latitude)
+    if delta_latitude > geo_accuracy and delta_longitude > geo_accuracy:
+        # get country of the new marker
+        try:
+            latlong = "{0},{1}".format(latitude,longitude)
+            location = geolocator.reverse(latlong, exactly_one=True, zoom=geo_zoom) # zoom='city'
+            country_code = location.raw['address']['country_code'].upper()
+        except:
+            country_code = ''
+    else:
+        country_code = prev_country_code
+
+    # add country code to countries array
+    new_code = True
+    for i in range(len(countries)):
+        if countries[i][0] == country_code:
+            countries[i][1] += 1
+            countries[i][2] += n_photos
+            new_code = False
+            break
+
+    if new_code and country_code != '':
+        countries.append([country_code, 1, n_photos])
+
+    prev_latitude = latitude
+    prev_longitude = longitude
+    prev_country_code = country_code
+
 # finish script
 if new_markers > 0:
     print('')
@@ -396,3 +486,13 @@ print('Finished!')
 
 locations_js_file.write("]\n")
 locations_js_file.close()
+
+for code in range(len(countries)):
+    if code < len(countries)-1:
+        countries_js_file.write("  {},\n".format(countries[code]))
+    else:
+        countries_js_file.write("  {}\n".format(countries[code]))
+
+countries_js_file.write("]\n")
+countries_js_file.close()
+
