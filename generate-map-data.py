@@ -107,6 +107,11 @@ if len(user_name) > 30:
 
 # user vatar url
 user_avatar = "https://live.staticflickr.com/5674/buddyicons/{}_r.jpg".format(user_id)
+os.system("wget -q {}".format(user_avatar))
+if os.path.exists("{}_r.jpg".format(user_id)):
+    os.system("rm {}_r.jpg".format(user_id))
+else:
+    user_avatar = "../photographer.svg"
 
 # get user's photos base url
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
