@@ -1,5 +1,5 @@
 # User alias or id:
-user = ''
+user = 'hpfilho'
 
 # Photoset id:
 # If this is defined the map will

@@ -15,7 +15,6 @@ import time
 import math
 
 from geopy.geocoders import Nominatim
-#from countries_bbox import countries_bbox
 
 
 # ================= CONFIGURATION VARIABLES =====================
@@ -91,33 +90,28 @@ def isGeoTagged(photo):
 
 #===== MAIN CODE ==============================================================#
 
-# check if there is a map file and read it
-if os.path.exists("{}/map.html".format(run_path)):
-    map_file = open("{}/map.html".format(run_path))
-    map = map_file.readlines()
-    map_file.close()
-else:
-    print("ERROR: FATAL: File 'map.html' is missing. Unable to run.")
-    sys.exit()
-
-# check if there is a mapbox token file and get the token
-if os.path.exists("{}/mapbox_token".format(run_path)):
-    mapbox_token_file = open("{}/mapbox_token".format(run_path))
-    mapbox_token_lines = mapbox_token_file.readlines()
-    mapbox_token_file.close()
-    if mapbox_token_lines == []:
-        print("ERROR: File 'mapbox_token' is empty. Add a valid token and try again.")
-        sys.exit()
-    mapbox_token = mapbox_token_lines[0].replace('\n','')
-else:
-    print("ERROR: File 'mapbox_token' not found. Create one and try again.")
-    sys.exit()
-
 # get user id from user url on config file
 user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(config.user))['user']['id']
 
 # get the username
-user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content'][:30]
+user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
+try:
+    real_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
+    if len(real_name) > 0:
+        user_name = real_name
+except:
+    pass
+
+if len(user_name) > 30:
+    user_name = user_name[:30]
+
+# user vatar url
+user_avatar = "https://live.staticflickr.com/5674/buddyicons/{}_r.jpg".format(user_id)
+os.system("wget -q {}".format(user_avatar))
+if os.path.exists("{}_r.jpg".format(user_id)):
+    os.system("rm {}_r.jpg".format(user_id))
+else:
+    user_avatar = "../photographer.svg"
 
 # get user's photos base url
 photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
@@ -144,19 +138,20 @@ except:
     print('{} photos in the photostream'.format(total))
     mode = 'photostream'
 
+# current number of photos on photostream
+current_total = total
+
 # difference on number of photos from previous run
 delta_total = int(total)
 
 # if there is no difference, finish script
 if os.path.exists("{}/last_total.py".format(run_path)):
     import last_total
-    delta_total = int(total) - int(last_total.number)
+    delta_total = int(current_total) - int(last_total.number)
     if delta_total == 0:
         print('No changes on number of photos since last run.\nAborted.')
+        geolocator = None
         sys.exit()
-
-# update last_total file with the new value
-os.system("echo \"number = {0}\" > {1}/last_total.py".format(total, run_path))
 
 # if difference > 0, makes total = delta_total
 # to process only the new photos, otherwise
@@ -170,22 +165,6 @@ else:
     n_deleted = abs(delta_total)
     print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
 
-# open map output file for writting
-index_file = open("{}/index.html".format(run_path), 'w')
-
-# read input map lines
-for line in map:
-    # add mapbox token
-    if line == '    mapboxgl.accessToken = \'\';\n':
-        index_file.write("    mapboxgl.accessToken = \'{}\';\n".format(mapbox_token))
-    else:
-        index_file.write(line)
-
-    # add map title with photographer's user name
-    if line == '<meta charset=\"utf-8\" />\n':
-        index_file.write("<title>{} | Photos Map</title>\n".format(user_name))
-
-index_file.close()
 
 print('Extracting photo coordinates and ids...')
 
@@ -266,6 +245,7 @@ if n_photos == 0:
         print('\nNo geo tagged photo on the user photoset\nMap not generated')
     else:
         print('\nNo geo tagged photo on the user photostream\nMap not generated')
+    geolocator = None
     sys.exit()
 
 print('\nAdding marker(s) to map...')
@@ -453,10 +433,12 @@ for marker_info in coordinates:
         # get country of the new marker
         try:
             latlong = "{0},{1}".format(latitude,longitude)
-            location = geolocator.reverse(latlong, exactly_one=True, zoom=geo_zoom) # zoom='city'
+            location = geolocator.reverse(latlong, language='en-US', exactly_one=True, zoom=geo_zoom) # zoom='city'
             country_code = location.raw['address']['country_code'].upper()
+            country_name = location.raw['address']['country']
         except:
             country_code = ''
+            country_name = ''
     else:
         country_code = prev_country_code
 
@@ -464,13 +446,13 @@ for marker_info in coordinates:
     new_code = True
     for i in range(len(countries)):
         if countries[i][0] == country_code:
-            countries[i][1] += 1
-            countries[i][2] += n_photos
+            countries[i][2] += 1
+            countries[i][3] += n_photos
             new_code = False
             break
 
     if new_code and country_code != '':
-        countries.append([country_code, 1, n_photos])
+        countries.append([country_code, country_name, 1, n_photos])
 
     prev_latitude = latitude
     prev_longitude = longitude
@@ -496,3 +478,38 @@ for code in range(len(countries)):
 countries_js_file.write("]\n")
 countries_js_file.close()
 
+# counts number of markers and photos to write to use file
+try:
+    locations_js_file = open("{}/locations.js".format(run_path))
+    locations_js_lines = locations_js_file.readlines()
+    locations_js_file.close()
+    locations_py_file = open("{}/locations_.py".format(run_path), 'w')
+    locations_py_file.write("locations_ = [\n")
+    for i in range(1, len(locations_js_lines)):
+        locations_py_file.write(locations_js_lines[i])
+    locations_py_file.close()
+    time.sleep(1)
+    from locations_ import locations_
+    os.system("rm {}/locations_.py".format(run_path))
+    n_markers = len(locations_)
+    n_photos = 0
+    for loc in locations_:
+        n_photos += loc[2]
+except:
+    n_markers = ''
+    n_photos = ''
+
+user_js_file = open("{}/user.js".format(run_path), 'w')
+user_js_file.write("var user_info = {\n")
+user_js_file.write("  \"id\": \"{}\",\n".format(user_id))
+user_js_file.write("  \"name\": \"{}\",\n".format(user_name))
+user_js_file.write("  \"avatar\": \"{}\",\n".format(user_avatar))
+user_js_file.write("  \"url\": \"{}\",\n".format(photos_base_url))
+user_js_file.write("  \"markers\": {},\n".format(n_markers))
+user_js_file.write("  \"photos\": {},\n".format(n_photos))
+user_js_file.write("}\n")
+user_js_file.close()
+
+# update last_total file with the new value
+if os.path.exists("{}/locations.js".format(run_path)):
+    os.system("echo \"number = {0}\" > {1}/last_total.py".format(current_total, run_path))
