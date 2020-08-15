@@ -45,10 +45,11 @@ Get an access token by visiting the [Create an access token](https://account.map
 
 Give a name to the token (e.g.: "Flickr Photos Map") and click on "**Create token**".
 
-Then, type the following command in the terminal:
+Then, include the generated code in the file **mapbox_token.js**:
 
 ```
-% echo "[YOUR TOKEN]" > mapbox_token
+var mapbox_token =
+'<-- include the mapbox access token here -->'
 ```
 
 ## Configuration
@@ -59,7 +60,7 @@ Add the user for whom the map will be generated. It can be the user alias or id.
 
 ```
 # user alias or id
-user = 'hpfilho'
+user = '<-- include user alias or id here -->'
 ```
 
 The map can be generated for just the photos on a user's photoset. In this case, add a valid photoset id to the _photoset_id_ variable.:
@@ -107,54 +108,39 @@ The default tag is _DontMap_:
 dont_map_tag = 'DontMap'
 ```
 
-There is an additional file needed to run the script: '__header.html__'. This file contains the initial _html_ and _javascript_ code of the map page. 
-
-So, __DO NOT DELETE IT!__
-
-### Script for Groups
-
-There is also a script to generate a map for groups in the directory 'groups'. To configure a group just run the following commands:
-
-```
-cd groups
-```
-Add the mapbox token running the following command:
-```
-% echo "[YOUR TOKEN]" > mapbox_token
-```
-Then, setup a group:
-```
-./setup-group.sh group_alias
-cd group_alias
-```
-or
-```
-cd groups
-./setup-group.sh group_id
-cd group_id
-```
-
-
 ## Usage
 
 Just run the script:
 
 ```
-% ./generate-map.py
+% ./generate-map-data.py
 ```
 
 The output will be like this:
 
 ```
-###################### Flickr Map ######################
-Generating map for 'H. P. Filho'
+Generating map for 'Haraldo Albergaria'
 1065 photos in the photostream
 Extracting photo coordinates and ids...
-Batch 3/3 | 958 photos in 531 markers
-Adding markers to map...
-Added 531/531
+Batch 3/3 | 958 photo(s) in 530 marker(s)
+Adding marker(s) to map...
+530 new marker(s) will be added to the map
+Added marker 530/530
 Finished!
 ```
+Three files are generated:
 
-The map is generated in the file __'map.html'__, which can be opened in a web browser, such as _Google Chrome_ and _Microsoft Edge_ 
-(doesn't work on _Internet Explorer_ and has not been tested on other browsers).
+- **locations.js**: Contains all the markers information, as coordinates and photos attached ti them.
+- **countries.js**: List of countries where the photos were taken, including number of places and photos for each place.
+- **user.js**: Basic user information, such as user id, name, avatar url, photostream url, number of markers and photos on map.
+
+After the script finishes, open the file **index.html** in a web browser, such as _Google Chrome_ and _Microsoft Edge_ 
+(doesn't work on _Internet Explorer_ and has not been tested on other browsers) to see the map.
+
+It is possible to make customizations on the map, by coding them in _Javascript_ in the file **main.js** and adding any includes, such as styles and additional javascript files in the appropriate field in 'index.html' file:
+
+```
+<!-- Begin of customization includes -->
+
+<!-- End of customization includes -->
+```
