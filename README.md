@@ -137,7 +137,7 @@ Three files are generated:
 After the script finishes, open the file **index.html** in a web browser, such as _Google Chrome_ and _Microsoft Edge_ 
 (doesn't work on _Internet Explorer_ and has not been tested on other browsers) to see the map.
 
-It is possible to make customizations on the map, by coding them in _Javascript_ in the file **main.js** and adding any includes, such as styles and additional javascript files in the appropriate field in 'index.html' file:
+It is possible to make customizations on the map, by coding them in _Javascript_ in the file **custom.js** and adding any includes, such as styles and additional javascript files in the appropriate field in 'index.html' file:
 
 ```
 <!-- Begin of customization includes -->
