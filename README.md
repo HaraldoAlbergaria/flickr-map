@@ -130,7 +130,7 @@ Finished!
 ```
 Three files are generated:
 
-- **locations.js**: Contains all the markers information, as coordinates and photos attached ti them.
+- **locations.js**: Contains all the markers information, as coordinates and photos attached to them.
 - **countries.js**: List of countries where the photos were taken, including number of places and photos for each place.
 - **user.js**: Basic user information, such as user id, name, avatar url, photostream url, number of markers and photos on map.
 
