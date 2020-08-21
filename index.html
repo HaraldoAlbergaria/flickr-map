@@ -7,9 +7,10 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css" rel="stylesheet" />
 
   <!-- change path if needed -->
-  <script src="locations.js"></script>
   <script src="mapbox_token.js"></script>
   <script src="custom.js"></script>
+  <script src="user.js"></script>
+  <script src="locations.py"></script>
 
   <style>
   body { margin: 0; padding: 0; }
@@ -18,14 +19,13 @@
   </style>
 
   <!-- Begin of customization includes -->
-
   <!-- End of customization includes -->
 
 </head>
 
 <body>
 
-  <div id="map" onclick="closeOverlay()"></div>
+  <div id="map"></div>
   <div id="menu">
     <input id="streets-v11" type="radio" name="rtoggle" value="streets" checked="checked" />
     <label for="streets-v11">streets</label>
@@ -89,15 +89,23 @@
 
     function addMarker(value) {
 
-      if (value[2] <= 35) {
+      var htmlText = "<div style=\"max-height:410px;overflow:auto;\">";
+
+      for (var i = 0; i < value[2].length; i++) {
+        htmlText = htmlText.concat("<a href=\"").concat(user_info['url']).concat(value[2][i][0])
+        .concat("/\" target=\"_blank\"><img src=\"").concat(value[2][i][1]).concat("\"/></a> ");
+      }
+      htmlText = htmlText.concat("</div>");
+
+      if (value[3] <= 35) {
         new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
         .setLngLat(value[0])
-        .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px'}).setHTML(value[1]))
+        .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px'}).setHTML(htmlText))
         .addTo(map);
       } else {
         new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
         .setLngLat(value[0])
-        .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px'}).setHTML(value[1]))
+        .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px'}).setHTML(htmlText))
         .addTo(map);
       }
 
