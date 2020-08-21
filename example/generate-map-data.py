@@ -427,6 +427,7 @@ countries_file.write("}\n")
 countries_file.close()
 
 # counts number of markers and photos to write to user file
+from locations import locations
 n_markers = len(locations)
 n_photos = 0
 for loc in locations:
