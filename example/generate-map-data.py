@@ -422,10 +422,11 @@ locations_file.close()
 
 i = 0
 for code in countries_dict:
-    if i < len(countries_dict):
+    if i < len(countries_dict)-1:
         countries_file.write("  \'{0}\': {1},\n".format(code, countries_dict[code]))
     else:
         countries_file.write("  \'{0}\': {1}\n".format(code, countries_dict[code]))
+    i += 1
 
 countries_file.write("}\n")
 countries_file.close()
