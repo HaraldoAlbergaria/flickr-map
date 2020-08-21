@@ -92,13 +92,17 @@ except:
 # get the username
 try:
     user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
-    real_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
-    if len(real_name) > 0:
-        user_name = real_name
 except:
     print("ERROR: FATAL: Unable to get user name")
     geolocator = None
     sys.exit()
+
+try:
+    real_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
+    if len(real_name) > 0:
+        user_name = real_name
+except:
+    pass
 
 if len(user_name) > 30:
     user_name = user_name[:30]
@@ -282,12 +286,12 @@ if n_locations > 0:
 
 # check if there is file with the countries already mapped
 if os.path.exists("{}/countries.py".format(run_path)):
-    from countries import countries
+    from countries import countries_dict
 else:
-    countries = dict()
+    countries_dict = dict()
 
 countries_file = open("{}/countries.py".format(run_path), 'w')
-countries_file.write("countries = {\n")
+countries_file.write("countries_dict = {\n")
 
 # counts the number of new photos added to markers
 new_photos = 0
@@ -317,7 +321,7 @@ for loc in range(n_locations):
                 if [photo_id, thumb_url] not in photos_info:
                     photos_info.append([photo_id, thumb_url])
                     new_photos += 1
-                    countries[locations[loc][1]][2] += 1
+                    countries_dict[locations[loc][1]][2] += 1
 
             # remove photo info from
             # coordinates to be added
@@ -370,8 +374,8 @@ for marker_info in coordinates:
         country_info = getCountryInfo(latitude, longitude)
         country_code = country_info[0]
         country_name = country_info[1]
-        if country_code not in countries:
-            countries[country_code] = [country_name, 0 , 0]
+        if country_code not in countries_dict:
+            countries_dict[country_code] = [country_name, 0 , 0]
     except:
         country_code = ''
         country_name = ''
@@ -400,8 +404,8 @@ for marker_info in coordinates:
         locations_file.write("\n")
 
     if country_code != '':
-        countries[country_code][1] += 1
-        countries[country_code][2] += n_photos
+        countries_dict[country_code][1] += 1
+        countries_dict[country_code][2] += n_photos
 
     print('Added marker {0}/{1}'.format(new_markers, n_markers), end='\r')
 
@@ -417,11 +421,11 @@ locations_file.write("]\n")
 locations_file.close()
 
 i = 0
-for code in countries:
-    if i < len(countries):
-        countries_file.write("  \'{0}\': {1},\n".format(code, countries[code]))
+for code in countries_dict:
+    if i < len(countries_dict):
+        countries_file.write("  \'{0}\': {1},\n".format(code, countries_dict[code]))
     else:
-        countries_file.write("  \'{0}\': {1}\n".format(code, countries[code]))
+        countries_file.write("  \'{0}\': {1}\n".format(code, countries_dict[code]))
 
 countries_file.write("}\n")
 countries_file.close()
