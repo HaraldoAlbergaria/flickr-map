@@ -86,7 +86,6 @@ try:
     user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(config.user))['user']['id']
 except:
     print("ERROR: FATAL: Unable to get user id")
-    geolocator = None
     sys.exit()
 
 # get the username
@@ -94,7 +93,6 @@ try:
     user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
 except:
     print("ERROR: FATAL: Unable to get user name")
-    geolocator = None
     sys.exit()
 
 try:
@@ -120,7 +118,6 @@ try:
     photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
 except:
     print("ERROR: FATAL: Unable to get photos base url")
-    geolocator = None
     sys.exit()
 
 # stores the coordinates fo the markers
@@ -140,7 +137,6 @@ except:
         photos = flickr.people.getPublicPhotos(api_key=api_key, user_id=user_id, per_page=photos_per_page)
     except:
         print("ERROR: FATAL: Unable to get photos")
-        geolocator = None
         sys.exit()
 
     npages = int(photos['photos']['pages'])
@@ -163,7 +159,6 @@ if os.path.exists("{}/last_total.py".format(run_path)):
     delta_total = int(current_total) - int(last_total.number)
     if delta_total == 0:
         print('No changes on number of photos since last run.\nAborted.')
-        geolocator = None
         sys.exit()
 
 # if difference > 0, makes total = delta_total
@@ -211,7 +206,6 @@ for pg in range(1, npages+1):
             page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
     except:
         print("ERROR: FATAL: Unable to get photos")
-        geolocator = None
         sys.exit()
 
     photos_in_page = len(page)
@@ -269,7 +263,6 @@ if n_photos == 0:
         print('\nNo geo tagged photo on the user photoset\nMap not generated')
     else:
         print('\nNo geo tagged photo on the user photostream\nMap not generated')
-    geolocator = None
     sys.exit()
 
 print('\nAdding marker(s) to map...')
