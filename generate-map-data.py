@@ -176,6 +176,12 @@ if delta_total > 0:
         print('{} new photo(s)'.format(total))
 else:
     n_deleted = abs(delta_total)
+    if os.path.exists("{}/locations.py".format(run_path)):
+        os.system("rm {}/locations.py".format(run_path))
+    if os.path.exists("{}/countries.py".format(run_path)):
+        os.system("rm {}/countries.py".format(run_path))
+    if os.path.exists("{}/user.js".format(run_path)):
+        os.system("rm {}/user.js".format(run_path))
     print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
 
 
@@ -374,11 +380,14 @@ for marker_info in coordinates:
         country_info = getCountryInfo(latitude, longitude)
         country_code = country_info[0]
         country_name = country_info[1]
-        if country_code not in countries_dict:
-            countries_dict[country_code] = [country_name, 0 , 0]
     except:
-        country_code = ''
-        country_name = ''
+        continue
+
+    if country_code == None:
+        continue
+
+    if country_code not in countries_dict:
+        countries_dict[country_code] = [country_name, 0 , 0]
 
     # write it to locations file
     locations_file.write("    [[{0}, {1}], \'{2}\', [".format(longitude, latitude, country_code))
@@ -403,9 +412,8 @@ for marker_info in coordinates:
     else:
         locations_file.write("\n")
 
-    if country_code != '':
-        countries_dict[country_code][1] += 1
-        countries_dict[country_code][2] += n_photos
+    countries_dict[country_code][1] += 1
+    countries_dict[country_code][2] += n_photos
 
     print('Added marker {0}/{1}'.format(new_markers, n_markers), end='\r')
 

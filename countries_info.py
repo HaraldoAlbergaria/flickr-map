@@ -25,7 +25,7 @@ def getCountryInfo(lat, long):
             code = location.raw['address']['country_code'].upper()
             name = location.raw['address']['country']
         except:
-            code = ''
+            code = None
             name = ''
     return [code, name]
 
