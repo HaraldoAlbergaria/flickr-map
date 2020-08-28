@@ -13,8 +13,8 @@ import os
 import sys
 import time
 import math
+import random
 
-#from geopy.geocoders import Nominatim
 from countries_info import getCountryInfo
 
 
@@ -24,7 +24,6 @@ from countries_info import getCountryInfo
 photos_per_page = '500'
 max_number_of_pages = 200
 max_number_of_photos = max_number_of_pages * int(photos_per_page)
-max_number_of_markers = 5000
 
 
 # ===============================================================
@@ -78,12 +77,29 @@ def isGeoTagged(photo):
         return True
     return False
 
+# Get the number of markers on locations dictionary
+def getNumberOfMarkers(dict):
+    n = 0
+    for key in dict:
+        n += len(dict[key])
+    return n
+
+# Get the number of photos on locations dictionary
+def getNumberOfPhotos(dict):
+    p = 0
+    for key in dict:
+        for marker in dict[key]:
+            p += len(marker[1])
+    return p
+
 
 #===== MAIN CODE ==============================================================#
 
+user_alias = config.user
+
 # get user id from user url on config file
 try:
-    user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(config.user))['user']['id']
+    user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(user_alias))['user']['id']
 except:
     print("ERROR: FATAL: Unable to get user id")
     sys.exit()
@@ -111,7 +127,7 @@ os.system("wget -q {}".format(user_avatar))
 if os.path.exists("{}_r.jpg".format(user_id)):
     os.system("rm {}_r.jpg".format(user_id))
 else:
-    user_avatar = "../photographer.svg"
+    user_avatar = "../../icons/photographer.svg"
 
 # get user's photos base url
 try:
@@ -171,12 +187,12 @@ if delta_total > 0:
         print('{} new photo(s)'.format(total))
 else:
     n_deleted = abs(delta_total)
-    if os.path.exists("{}/locations.py".format(run_path)):
-        os.system("rm {}/locations.py".format(run_path))
+    if os.path.exists("{}/locations_dict.py".format(run_path)):
+        os.system("rm {}/locations_dict.py".format(run_path))
     if os.path.exists("{}/countries.py".format(run_path)):
         os.system("rm {}/countries.py".format(run_path))
-    if os.path.exists("{}/user.js".format(run_path)):
-        os.system("rm {}/user.js".format(run_path))
+    if os.path.exists("{}/user.py".format(run_path)):
+        os.system("rm {}/user.py".format(run_path))
     print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
 
 
@@ -242,7 +258,7 @@ for pg in range(1, npages+1):
                 n_markers += 1
 
         # stop processing photos if any limit was reached
-        if n_photos >= total or n_photos >= max_number_of_photos or n_markers >= max_number_of_markers:
+        if n_photos >= total or n_photos >= max_number_of_photos:
            break
 
     print('Batch {0}/{1} | {2} photo(s) in {3} marker(s)'.format(pg, npages, n_photos, n_markers), end='\r')
@@ -252,9 +268,6 @@ for pg in range(1, npages+1):
         break
     if n_photos >= max_number_of_photos:
         print("\nMaximum number of photos on map reached!", end='')
-        break
-    if n_markers >= max_number_of_markers:
-        print("\nMaximum number of markers on map reached!", end='')
         break
 
 # stop and exit script if there is no photo to be added to the map
@@ -270,18 +283,14 @@ print('\nAdding marker(s) to map...')
 # check if there is a file with the markers on map already
 # and import it otherwise created a new variable
 if os.path.exists("{}/locations.py".format(run_path)):
-    from locations import locations
+    from locations import locations_dict
 else:
-    locations = []
-
-# create a new location file or overwrite existing one
-locations_file = open("{}/locations.py".format(run_path), 'w')
-locations_file.write("locations = [\n")
+    locations_dict = dict()
 
 # get the number of markers (locations) already on map
-n_locations = len(locations)
-if n_locations > 0:
-    print('Map already has {} marker(s)'.format(n_locations))
+n_markers = getNumberOfMarkers(locations_dict)
+if n_markers > 0:
+    print('Map already has {} marker(s)'.format(n_markers))
 
 # check if there is file with the countries already mapped
 if os.path.exists("{}/countries.py".format(run_path)):
@@ -289,53 +298,51 @@ if os.path.exists("{}/countries.py".format(run_path)):
 else:
     countries_dict = dict()
 
-countries_file = open("{}/countries.py".format(run_path), 'w')
-countries_file.write("countries_dict = {\n")
 
 # counts the number of new photos added to markers
 new_photos = 0
 
-# process each marker info already on map
-for loc in range(n_locations):
+# iterate on each country
+for country in locations_dict:
 
-    # get info for photos on marker
-    photos_info = locations[loc][2]
-    n_photos = int(locations[loc][3])
+    # get markers for country
+    country_markers = locations_dict[country]
 
-    # get number of photos (coordinates) to be added to map
-    n_coords = len(coordinates)
+    # iterate on each marker
+    for marker in country_markers:
 
-    # iterate over each coordinate
-    for coord in range(n_coords-1, -1, -1):
+        # get info for photos on marker
+        photos_info = marker[1]
+        #n_photos = len(photos_info)
 
-        # if there is already a marker on the same coordinate
-        if coordinates[coord][0] == locations[loc][0]:
+        # get number of photos (coordinates) to be added to map
+        n_coords = len(coordinates)
 
-            # read each photo already on the marker
-            for photo in coordinates[coord][1]:
-                photo_id = photo[0]
-                thumb_url = photo[1]
+        # iterate over each coordinate
+        for coord in range(n_coords-1, -1, -1):
 
-                # if the photo is not already on marker, add the photo to it
-                if [photo_id, thumb_url] not in photos_info:
-                    photos_info.append([photo_id, thumb_url])
-                    new_photos += 1
-                    countries_dict[locations[loc][1]][2] += 1
+            # if there is already a marker on the same coordinate
+            if coordinates[coord][0] == marker[0]:
 
-            # remove photo info from
-            # coordinates to be added
-            coordinates.pop(coord)
+                # read each photo already on the marker
+                for photo in coordinates[coord][1]:
+                    photo_id = photo[0]
+                    thumb_url = photo[1]
 
-    # update the number of photos on marker
-    locations[loc][2] = photos_info
-    locations[loc][3] = len(photos_info)
-    locations_file.write("    {}".format(locations[loc]))
+                    # if the photo is not already on marker, add the photo to it
+                    if [photo_id, thumb_url] not in photos_info:
+                        photos_info.append([photo_id, thumb_url])
+                        new_photos += 1
 
-    if len(coordinates) > 0:
-        locations_file.write(",\n")
-    else:
-        locations_file.write("\n")
+                # remove photo info from
+                # coordinates to be added
+                coordinates.pop(coord)
 
+        # update the number of photos on marker
+        marker[1] = photos_info
+
+    ## counts the number of photos
+    #n_photos = 0
 
 if new_photos > 0:
     print('Added {} new photo(s) to existing markers'.format(new_photos))
@@ -349,16 +356,6 @@ n_markers = len(coordinates)
 if n_markers > 0:
     print('{} new marker(s) will be added to the map'.format(n_markers))
 
-# remove the oldest locations to make
-# room for new markers without violate
-# the max number of markers limit
-new_locations_length = len(locations) + n_markers
-if new_locations_length >= max_number_of_markers:
-    new_locations_length = max_number_of_markers - n_markers
-    print('Max number of markers reached. Removing {} marker(s)...'.format(n_markers))
-    while len(locations) > new_locations_length:
-        locations.pop(0)
-
 new_markers = 0
 
 # iterate over each marker to be added
@@ -369,44 +366,24 @@ for marker_info in coordinates:
     # get coordinates of the new marker
     longitude = float(marker_info[0][0])
     latitude = float(marker_info[0][1])
+
+    # get country code and name
     try:
         country_info = getCountryInfo(latitude, longitude)
         country_code = country_info[0]
         country_name = country_info[1]
     except:
-        continue
+        pass
 
-    if country_code == None:
-        continue
-
-    if country_code not in countries_dict:
+    # add country to countries dictionary
+    if country_code != '' and country_code not in countries_dict:
         countries_dict[country_code] = [country_name, 0 , 0]
 
-    # write it to locations file
-    locations_file.write("    [[{0}, {1}], \'{2}\', [".format(longitude, latitude, country_code))
-
-    # counts the number of photos
-    n_photos = 0
-
-    # iterate over each photo
-    for photo in marker_info[1]:
-
-        # add photo to marker, writing it to locations file
-        locations_file.write("[\'{0}\', \'{1}\']".format(photo[0], photo[1]))
-        n_photos += 1
-
-        if n_photos < len(marker_info[1]):
-            locations_file.write(", ")
-
-    # finish marker writing to location file
-    locations_file.write("], {}]".format(n_photos))
-    if new_markers < n_markers:
-        locations_file.write(",\n")
+    # add country to locations dictionary
+    if country_code not in locations_dict:
+        locations_dict[country_code] = [marker_info]
     else:
-        locations_file.write("\n")
-
-    countries_dict[country_code][1] += 1
-    countries_dict[country_code][2] += n_photos
+        locations_dict[country_code].append(marker_info)
 
     print('Added marker {0}/{1}'.format(new_markers, n_markers), end='\r')
 
@@ -418,11 +395,21 @@ else:
 
 print('Finished!')
 
-locations_file.write("]\n")
-locations_file.close()
+# write countries dictionary to file
+countries_file = open("{}/countries.py".format(run_path), 'w')
+countries_file.write("countries_dict = {\n")
 
 i = 0
 for code in countries_dict:
+    markers = locations_dict[code]
+    n_markers = len(markers)
+    n_photos = 0
+    for marker in markers:
+        n_photos += len(marker[1])
+
+    countries_dict[code][1] = n_markers
+    countries_dict[code][2] = n_photos
+
     if i < len(countries_dict)-1:
         countries_file.write("  \'{0}\': {1},\n".format(code, countries_dict[code]))
     else:
@@ -432,23 +419,45 @@ for code in countries_dict:
 countries_file.write("}\n")
 countries_file.close()
 
-# counts number of markers and photos to write to user file
-from locations import locations
-n_markers = len(locations)
-n_photos = 0
-for loc in locations:
-    n_photos += loc[3]
+# write markers information (locations) to file
+locations_file = open("{}/locations.py".format(run_path), 'w')
+locations_file.write("locations_dict = {\n")
 
-user_js_file = open("{}/user.js".format(run_path), 'w')
-user_js_file.write("var user_info = {\n")
-user_js_file.write("  \"id\": \"{}\",\n".format(user_id))
-user_js_file.write("  \"name\": \"{}\",\n".format(user_name))
-user_js_file.write("  \"avatar\": \"{}\",\n".format(user_avatar))
-user_js_file.write("  \"url\": \"{}\",\n".format(photos_base_url))
-user_js_file.write("  \"markers\": {},\n".format(n_markers))
-user_js_file.write("  \"photos\": {}\n".format(n_photos))
-user_js_file.write("}\n")
-user_js_file.close()
+i = 1
+for country_code in locations_dict:
+    locations_file.write("  \'{}\': [\n".format(country_code))
+    random.shuffle(locations_dict[country_code])
+    for coord in range(len(locations_dict[country_code])):
+        locations_file.write("    {}".format(locations_dict[country_code][coord]))
+        if coord < len(locations_dict[country_code])-1:
+            locations_file.write(",\n")
+        else:
+            locations_file.write("\n  ]")
+    if i < len(locations_dict):
+        locations_file.write(",\n")
+    else:
+        locations_file.write("\n")
+    i += 1
+
+locations_file.write("}\n")
+locations_file.close()
+
+# get total number of markers and photos to write to user file
+n_markers = getNumberOfMarkers(locations_dict)
+n_photos = getNumberOfPhotos(locations_dict)
+
+# write user information to file
+user_file = open("{}/user.py".format(run_path), 'w')
+user_file.write("user_info = {\n")
+user_file.write("  \'id\': \'{}\',\n".format(user_id))
+user_file.write("  \'alias\': \'{}\',\n".format(user_alias))
+user_file.write("  \'name\': \'{}\',\n".format(user_name))
+user_file.write("  \'avatar\': \'{}\',\n".format(user_avatar))
+user_file.write("  \'url\': \'{}\',\n".format(photos_base_url))
+user_file.write("  \'markers\': {},\n".format(n_markers))
+user_file.write("  \'photos\': {}\n".format(n_photos))
+user_file.write("}\n")
+user_file.close()
 
 # update last_total file with the new value
 if os.path.exists("{}/locations.py".format(run_path)):

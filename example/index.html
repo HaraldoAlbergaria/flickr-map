@@ -8,9 +8,11 @@
 
   <!-- change path if needed -->
   <script src="mapbox_token.js"></script>
+  <script src="config.js"></script>
   <script src="custom.js"></script>
-  <script src="user.js"></script>
   <script src="locations.py"></script>
+  <script src="countries.py"></script>
+  <script src="user.py"></script>
 
   <style>
   body { margin: 0; padding: 0; }
@@ -54,6 +56,7 @@
       inputs[i].onclick = switchLayer;
     }
 
+    var initial_bbox = [];
     var current_bbox = [];
 
     var west = 180;
@@ -61,7 +64,24 @@
     var east = -180;
     var north = -90;
 
-    locations.forEach(addMarker);
+    var stop = false;
+    var current_index = 0;
+    var current_n_markers = 0;
+
+    while (!stop) {
+      for (var country_code in locations_dict) {
+        if (current_index < locations_dict[country_code].length) {
+          addMarker(locations_dict[country_code][current_index]);
+          current_n_markers++;
+        }
+      }
+      if (current_n_markers > max_init_n_markers || current_n_markers >= user_info['markers']) {
+        stop = true;
+      }
+      current_index++;
+    }
+
+    initial_bbox = current_bbox;
 
     map.fitBounds([
       [current_bbox[0], current_bbox[1]],
@@ -91,13 +111,13 @@
 
       var htmlText = "<div style=\"max-height:410px;overflow:auto;\">";
 
-      for (var i = 0; i < value[2].length; i++) {
-        htmlText = htmlText.concat("<a href=\"").concat(user_info['url']).concat(value[2][i][0])
-        .concat("/\" target=\"_blank\"><img src=\"").concat(value[2][i][1]).concat("\"/></a> ");
+      for (var i = 0; i < value[1].length; i++) {
+        htmlText = htmlText.concat("<a href=\"").concat(user_info['url']).concat(value[1][i][0])
+        .concat("/\" target=\"_blank\"><img src=\"").concat(value[1][i][1]).concat("\"/></a> ");
       }
       htmlText = htmlText.concat("</div>");
 
-      if (value[3] <= 35) {
+      if (value[1].length <= 35) {
         new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
         .setLngLat(value[0])
         .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px'}).setHTML(htmlText))

@@ -10,11 +10,13 @@ except:
 
 
 def getCountryInfo(lat, long):
+
     latitude = int(lat)
     longitude = int(long)
     lat_codes = latitude_dict[latitude]
     long_codes = longitude_dict[longitude]
     codes = lat_codes.intersection(long_codes)
+
     if len(codes) == 1:
         code = codes.pop()
         name = countries_dict[code]
@@ -25,8 +27,9 @@ def getCountryInfo(lat, long):
             code = location.raw['address']['country_code'].upper()
             name = location.raw['address']['country']
         except:
-            code = None
+            code = ''
             name = ''
+
     return [code, name]
 
 
@@ -227,18 +230,18 @@ countries_dict = {
   'AD': 'Andorra',
   'AQ': 'Antarctica',
   'BB': 'Barbados',
-  'DM': 'Dominica', 
-  'GG': 'Guernsey', 
+  'DM': 'Dominica',
+  'GG': 'Guernsey',
   'GI': 'Gibraltar',
   'GM': 'Gambia',
   'KM': 'Comoros',
-  'KN': 'Saint Kitts and Nevis', 
+  'KN': 'Saint Kitts and Nevis',
   'LI': 'Liechtenstein',
   'MC': 'Monaco',
   'MU': 'Mauritius',
   'NC': 'New Caledonia',
-  'PR': 'Puerto Rico',  
-  'PS': 'West Bank',  
+  'PR': 'Puerto Rico',
+  'PS': 'West Bank',
   'SG': 'Singapore',
   'TF': 'Fr. S. and Antarctic Lands',
   'VG': 'British Virgin Islands'

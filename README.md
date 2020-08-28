@@ -132,7 +132,7 @@ Three files are generated:
 
 - **locations.py**: Contains all the markers information, as coordinates and photos attached to them.
 - **countries.py**: List of countries where the photos were taken, including number of places and photos for each place.
-- **user.js**: Basic user information, such as user id, name, avatar url, photostream url, number of markers and photos on map.
+- **user.py**: Basic user information, such as user id, name, avatar url, photostream url, number of markers and photos on map.
 
 After the script finishes, open the file **index.html** in a web browser, such as _Google Chrome_ and _Microsoft Edge_ 
 (doesn't work on _Internet Explorer_ and has not been tested on other browsers) to see the map.
