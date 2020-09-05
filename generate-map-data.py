@@ -272,10 +272,7 @@ for pg in range(1, npages+1):
 
 # stop and exit script if there is no photo to be added to the map
 if n_photos == 0:
-    if mode == 'photoset':
-        print('\nNo geo tagged photo on the user photoset\nMap not generated')
-    else:
-        print('\nNo geo tagged photo on the user photostream\nMap not generated')
+    print('\nNo geo-tagged photo has been found.\nMap not generated.')
     sys.exit()
 
 print('\nAdding marker(s) to map...')
