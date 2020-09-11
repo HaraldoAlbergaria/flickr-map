@@ -373,8 +373,12 @@ for marker_info in coordinates:
         pass
 
     # add country to countries dictionary
-    if country_code != '' and country_code not in countries_dict:
-        countries_dict[country_code] = [country_name, 0 , 0]
+    if country_code != '':
+        if country_code not in countries_dict:
+            countries_dict[country_code] = [country_name, 0 , 0]
+        else:
+            if countries_dict[country_code][0] == '':
+                countries_dict[country_code][0] = country_name
 
     # add country to locations dictionary
     if country_code not in locations_dict:
