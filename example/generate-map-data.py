@@ -73,9 +73,9 @@ def getGeoPrivacy(photo):
 
 # Function to verify if there is geo tag info
 def isGeoTagged(photo):
-    if 'geo_is_public' in photo:
-        return True
-    return False
+    if photo['latitude'] == 0 and photo['longitude'] == 0 and photo['accuracy'] == 0:
+        return False
+    return True
 
 # Get the number of markers on locations dictionary
 def getNumberOfMarkers(dict):
@@ -91,6 +91,11 @@ def getNumberOfPhotos(dict):
         for marker in dict[key]:
             p += len(marker[1])
     return p
+
+# Update last_total file with the new value
+def updateLastTotalFile(run_path, current_total):
+    if os.path.exists("{}/locations.py".format(run_path)):
+        os.system("echo \"number = {0}\" > {1}/last_total.py".format(current_total, run_path))
 
 
 #===== MAIN CODE ==============================================================#
@@ -182,9 +187,9 @@ if os.path.exists("{}/last_total.py".format(run_path)):
 # (photos were deleted), run in all
 # photostream to update the entire map
 if delta_total > 0:
-    total = delta_total
     if total != delta_total:
-        print('{} new photo(s)'.format(total))
+        total = delta_total
+        print('{} new photo(s) added'.format(total))
 else:
     n_deleted = abs(delta_total)
     if os.path.exists("{}/locations_dict.py".format(run_path)):
@@ -210,6 +215,9 @@ if npages > max_number_of_pages:
     npages = max_number_of_pages
     total = max_number_of_pages * int(photos_per_page);
     print("Extracting for the last {} photos".format(total))
+
+# counts the number of processed photos
+proc_photos = 0
 
 # process each page
 for pg in range(1, npages+1):
@@ -244,7 +252,7 @@ for pg in range(1, npages+1):
             longitude = float(photo['longitude'])
             latitude = float(photo['latitude'])
 
-            # read each markers coordinates and append photo is case
+            # read each markers coordinates and append photo in case
             # there is already a marker on the same coordinate
             for coord in coordinates:
                 if longitude == coord[0][0] and latitude == coord[0][1]:
@@ -257,8 +265,10 @@ for pg in range(1, npages+1):
                 coordinates.append([[longitude, latitude], [[photo['id'], photo['url_sq']]]])
                 n_markers += 1
 
+        proc_photos += 1
+
         # stop processing photos if any limit was reached
-        if n_photos >= total or n_photos >= max_number_of_photos:
+        if proc_photos >= total or proc_photos >= max_number_of_photos:
            break
 
     print('Batch {0}/{1} | {2} photo(s) in {3} marker(s)'.format(pg, npages, n_photos, n_markers), end='\r')
@@ -273,6 +283,7 @@ for pg in range(1, npages+1):
 # stop and exit script if there is no photo to be added to the map
 if n_photos == 0:
     print('\nNo geo-tagged photo has been found.\nMap not generated.')
+    updateLastTotalFile(run_path, current_total)
     sys.exit()
 
 print('\nAdding marker(s) to map...')
@@ -337,9 +348,6 @@ for country in locations_dict:
 
         # update the number of photos on marker
         marker[1] = photos_info
-
-    ## counts the number of photos
-    #n_photos = 0
 
 if new_photos > 0:
     print('Added {} new photo(s) to existing markers'.format(new_photos))
@@ -460,6 +468,4 @@ user_file.write("  \'photos\': {}\n".format(n_photos))
 user_file.write("}\n")
 user_file.close()
 
-# update last_total file with the new value
-if os.path.exists("{}/locations.py".format(run_path)):
-    os.system("echo \"number = {0}\" > {1}/last_total.py".format(current_total, run_path))
+updateLastTotalFile(run_path, current_total)
