@@ -156,12 +156,12 @@ try:
 except:
     try:
         photos = flickr.people.getPublicPhotos(api_key=api_key, user_id=user_id, per_page=photos_per_page)
+        npages = int(photos['photos']['pages'])
+        total = int(photos['photos']['total'])
     except:
         print("ERROR: FATAL: Unable to get photos")
         sys.exit()
 
-    npages = int(photos['photos']['pages'])
-    total = int(photos['photos']['total'])
     if config.photoset_id != '':
         print('ERROR: Invalid photoset id.\nSwitching to user\'s photostream...')
     print('Generating map for \'{}\''.format(user_name))
@@ -192,8 +192,8 @@ if delta_total > 0:
         print('{} new photo(s) added'.format(total))
 else:
     n_deleted = abs(delta_total)
-    if os.path.exists("{}/locations_dict.py".format(run_path)):
-        os.system("rm {}/locations_dict.py".format(run_path))
+    if os.path.exists("{}/locations.py".format(run_path)):
+        os.system("rm {}/locations.py".format(run_path))
     if os.path.exists("{}/countries.py".format(run_path)):
         os.system("rm {}/countries.py".format(run_path))
     if os.path.exists("{}/user.py".format(run_path)):
