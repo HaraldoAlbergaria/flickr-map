@@ -280,12 +280,6 @@ for pg in range(1, npages+1):
         print("\nMaximum number of photos on map reached!", end='')
         break
 
-# stop and exit script if there is no photo to be added to the map
-if n_photos == 0:
-    print('\nNo geo-tagged photo has been found.\nMap not generated.')
-    updateLastTotalFile(run_path, current_total)
-    sys.exit()
-
 print('\nAdding marker(s) to map...')
 
 # check if there is a file with the markers on map already
