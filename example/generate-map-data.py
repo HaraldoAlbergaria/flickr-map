@@ -450,11 +450,12 @@ n_markers = getNumberOfMarkers(locations_dict)
 n_photos = getNumberOfPhotos(locations_dict)
 
 # write user information to file
+
 user_file = open("{}/user.py".format(run_path), 'w')
 user_file.write("user_info = {\n")
 user_file.write("  \'id\': \'{}\',\n".format(user_id))
 user_file.write("  \'alias\': \'{}\',\n".format(user_alias))
-user_file.write("  \'name\': \'{}\',\n".format(user_name))
+user_file.write("  \'name\': \'{}\',\n".format(user_name.replace("\'", "\\\'")))
 user_file.write("  \'avatar\': \'{}\',\n".format(user_avatar))
 user_file.write("  \'url\': \'{}\',\n".format(photos_base_url))
 user_file.write("  \'markers\': {},\n".format(n_markers))
