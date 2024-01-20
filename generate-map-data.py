@@ -146,7 +146,7 @@ coordinates = []
 
 # set script mode (photoset or photostream) and get the total number of photos
 try:
-    photos = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, per_page=photos_per_page)
+    photos = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, content_types=0, per_page=photos_per_page)
     npages = int(photos['photoset']['pages'])
     total = int(photos['photoset']['total'])
     print('Generating map for \'{}\''.format(user_name))
@@ -155,7 +155,7 @@ try:
     mode = 'photoset'
 except:
     try:
-        photos = flickr.people.getPublicPhotos(api_key=api_key, user_id=user_id, per_page=photos_per_page)
+        photos = flickr.people.getPublicPhotos(api_key=api_key, user_id=user_id, content_types=0, per_page=photos_per_page)
         npages = int(photos['photos']['pages'])
         total = int(photos['photos']['total'])
     except:
@@ -225,9 +225,9 @@ for pg in range(1, npages+1):
     # get photos according to run mode
     try:
         if mode == 'photoset':
-            page = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photoset']['photo']
+            page = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, content_types=0, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photoset']['photo']
         else:
-            page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
+            page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, content_types=0, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
     except:
         print("ERROR: FATAL: Unable to get photos")
         sys.exit()
