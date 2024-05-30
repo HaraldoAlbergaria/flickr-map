@@ -1,1 +1,1 @@
-../countries_info.py
+../../countries_info.py
