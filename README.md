@@ -1,6 +1,6 @@
 # Flickr Map
 
-This script generates a map with markers for all photos in a user's Flickr™ photostream. Click [here](https://hpfilho.github.io/FlickrMap/example/) to see an example.
+This script generates a map with markers for all photos in a user's Flickr™ photostream. Click [here](https://haraldofilho.github.io/flickr-map/example/) to see an example.
 
 ## Installation
 
@@ -9,7 +9,7 @@ The script was developed to run on _Linux_ systems and need _Python 3.x_ to run.
 To start, open a terminal and execute the following commands:
 
 ```
-git clone https://github.com/hpfilho/FlickrMap.git
+git clone https://github.com/HaraldoFilho/flickr-map.git
 cd FlickrMap
 ```
 
