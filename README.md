@@ -144,3 +144,5 @@ It is possible to make customizations on the map, by coding them in _Javascript_
 
 <!-- End of customization includes -->
 ```
+
+An example of a customization file can be seen [here](https://raw.githubusercontent.com/HaraldoFilho/haraldoalbergaria.page/master/map/custom.js) and its result, where was added a panel with visited countries flags, which zoom in to the country when clicked, can be seen [here](https://haraldoalbergaria.page/map/).
