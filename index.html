@@ -39,117 +39,117 @@
 
   <script>
 
-    mapboxgl.accessToken = mapbox_token;
+  mapboxgl.accessToken = mapbox_token;
 
-    var map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11'
-    });
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11'
+  });
 
-    map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
-    map.addControl(new mapboxgl.NavigationControl());
+  map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
+  map.addControl(new mapboxgl.NavigationControl());
 
-    var layerList = document.getElementById('menu');
-    var inputs = layerList.getElementsByTagName('input');
+  var layerList = document.getElementById('menu');
+  var inputs = layerList.getElementsByTagName('input');
 
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].onclick = switchLayer;
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].onclick = switchLayer;
+  }
+
+  var initial_bbox = [];
+  var current_bbox = [];
+
+  var west = 180;
+  var south = 90;
+  var east = -180;
+  var north = -90;
+
+  var stop = false;
+  var current_index = 0;
+  var current_n_markers = 0;
+
+  while (!stop) {
+    for (var country_code in locations_dict) {
+      if (current_index < locations_dict[country_code].length) {
+        addMarker(locations_dict[country_code][current_index]);
+        current_n_markers++;
+      }
+    }
+    if (current_n_markers > max_init_n_markers || current_n_markers >= user_info['markers']) {
+      stop = true;
+    }
+    current_index++;
+  }
+
+  initial_bbox = current_bbox;
+
+  map.fitBounds([
+    [current_bbox[0], current_bbox[1]],
+    [current_bbox[2], current_bbox[3]]],
+    {padding: 150}
+  );
+
+  map.on('dragend', function() {
+    current_bbox = [];
+  });
+
+  map.on('wheel', function() {
+    current_bbox = [];
+  });
+
+  custom();
+
+
+  // Functions
+
+  function switchLayer(layer) {
+    var layerId = layer.target.id;
+    map.setStyle('mapbox://styles/mapbox/' + layerId);
+  }
+
+  function addMarker(value) {
+
+    var htmlText = "<div style=\"max-height:490px;overflow:auto;\">";
+
+    for (var i = 0; i < value[1].length; i++) {
+      htmlText = htmlText.concat("<a href=\"").concat(user_info['url']).concat(value[1][i][0])
+      .concat("/\" target=\"_blank\"><img src=\"").concat(value[1][i][1]).concat("\"/></a> ");
+    }
+    htmlText = htmlText.concat("</div>");
+
+    if (value[1].length <= 35) {
+      new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
+      .setLngLat(value[0])
+      .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px',anchor:'bottom'}).setHTML(htmlText))
+      .addTo(map);
+    } else {
+      new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
+      .setLngLat(value[0])
+      .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px',anchor:'bottom'}).setHTML(htmlText))
+      .addTo(map);
     }
 
-    var initial_bbox = [];
-    var current_bbox = [];
-
-    var west = 180;
-    var south = 90;
-    var east = -180;
-    var north = -90;
-
-    var stop = false;
-    var current_index = 0;
-    var current_n_markers = 0;
-
-    while (!stop) {
-      for (var country_code in locations_dict) {
-        if (current_index < locations_dict[country_code].length) {
-          addMarker(locations_dict[country_code][current_index]);
-          current_n_markers++;
-        }
-      }
-      if (current_n_markers > max_init_n_markers || current_n_markers >= user_info['markers']) {
-        stop = true;
-      }
-      current_index++;
+    if (value[0][0] < west) {
+      west = value[0][0];
+    }
+    
+    if (value[0][0] > east) {
+      east = value[0][0];
     }
 
-    initial_bbox = current_bbox;
-
-    map.fitBounds([
-      [current_bbox[0], current_bbox[1]],
-      [current_bbox[2], current_bbox[3]]],
-      {padding: 150}
-    );
-
-    map.on('dragend', function() {
-      current_bbox = [];
-    });
-
-    map.on('wheel', function() {
-      current_bbox = [];
-    });
-
-    custom();
-
-
-    // Functions
-
-    function switchLayer(layer) {
-      var layerId = layer.target.id;
-      map.setStyle('mapbox://styles/mapbox/' + layerId);
+    if (value[0][1] < south) {
+      south = value[0][1];
     }
 
-    function addMarker(value) {
-
-      var htmlText = "<div style=\"max-height:410px;overflow:auto;\">";
-
-      for (var i = 0; i < value[1].length; i++) {
-        htmlText = htmlText.concat("<a href=\"").concat(user_info['url']).concat(value[1][i][0])
-        .concat("/\" target=\"_blank\"><img src=\"").concat(value[1][i][1]).concat("\"/></a> ");
-      }
-      htmlText = htmlText.concat("</div>");
-
-      if (value[1].length <= 35) {
-        new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
-        .setLngLat(value[0])
-        .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'566px'}).setHTML(htmlText))
-        .addTo(map);
-      } else {
-        new mapboxgl.Marker({color:'#C2185B',scale:0.7,draggable:false})
-        .setLngLat(value[0])
-        .setPopup(new mapboxgl.Popup({closeButton:false,maxWidth:'592px'}).setHTML(htmlText))
-        .addTo(map);
-      }
-
-      if (value[0][0] < west) {
-        west = value[0][0];
-      }
-
-      if (value[0][0] > east) {
-        east = value[0][0];
-      }
-
-      if (value[0][1] < south) {
-        south = value[0][1];
-      }
-
-      if (value[0][1] > north) {
-        north = value[0][1];
-      }
-
-      current_bbox = [west, south, east, north];
-
+    if (value[0][1] > north) {
+      north = value[0][1];
     }
+
+    current_bbox = [west, south, east, north];
+
+  }
 
   </script>
 
-  </body>
-  </html>
+</body>
+</html>
