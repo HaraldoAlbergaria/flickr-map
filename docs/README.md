@@ -1,10 +1,12 @@
 # Flickr Map
 
-This script generates a map with markers for all photos in a user's Flickr™ photostream. Click [here](https://haraldofilho.github.io/flickr-map/example/) to see an example.
+This script generates a map with markers for all photos in a user's Flickr™ photostream.
+
+[![Map Example](img/map.png)](https://haraldofilho.github.io/flickr-map/example/)
 
 ## Installation
 
-The script was developed to run on _Linux_ systems and need _Python 3.x_ to run. 
+The script was developed to run on _Linux_ systems and need _Python 3.x_ to run.
 
 To start, open a terminal and execute the following commands:
 
@@ -74,7 +76,7 @@ photoset_id = ''
 ```
 If the variable is empty or have a invalid id the map will be generated for the entire user's photostream.
 
-By default, the script will generate the map marking only the public photos on the user's photostream, and those with a geolocation set as visible to anyone. 
+By default, the script will generate the map marking only the public photos on the user's photostream, and those with a geolocation set as visible to anyone.
 This can be changed by editing the variables _photo_privacy_ and/or _geo_privacy_:
 
 ```
@@ -99,7 +101,7 @@ geo_privacy = 1
 ```
 But only the authenticated user will be able to see the privated photos of your own photostream, i.e. when generating for a different user only the public photos will be visible, independently of this configuration.
 
-There is one more option that can be changed, the variable _dont_map_tag_. To exclude a photo from the map, define a tag in this variable and add the same tag to the photo. 
+There is one more option that can be changed, the variable _dont_map_tag_. To exclude a photo from the map, define a tag in this variable and add the same tag to the photo.
 The default tag is _DontMap_:
 
 ```
@@ -134,7 +136,7 @@ Three files are generated:
 - **countries.py**: List of countries where the photos were taken, including number of places and photos for each place.
 - **user.py**: Basic user information, such as user id, name, avatar url, photostream url, number of markers and photos on map.
 
-After the script finishes, open the file **index.html** in a web browser, such as _Google Chrome_ and _Microsoft Edge_ 
+After the script finishes, open the file **index.html** in a web browser, such as _Google Chrome_ and _Microsoft Edge_
 (doesn't work on _Internet Explorer_ and has not been tested on other browsers) to see the map.
 
 It is possible to make customizations on the map, by coding them in _Javascript_ in the file **custom.js** and adding any includes, such as styles and additional javascript files in the appropriate field in 'index.html' file:
