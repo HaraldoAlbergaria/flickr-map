@@ -9,8 +9,8 @@ The script was developed to run on _Linux_ systems and need _Python 3.x_ to run.
 To start, open a terminal and execute the following commands:
 
 ```
-git clone https://github.com/HaraldoFilho/flickr-map.git
-cd flickr-map
+git clone https://github.com/HaraldoFilho/FlickrMap.git
+cd FlickrMap
 ```
 
 The script uses *[Flickr](https://www.flickr.com/)™* and *[Mapbox](https://www.mapbox.com/)™* APIs. To get and use these APIs follow the instructions below.
