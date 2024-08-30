@@ -10,7 +10,7 @@ To start, open a terminal and execute the following commands:
 
 ```
 git clone https://github.com/HaraldoFilho/flickr-map.git
-cd FlickrMap
+cd flickr-map
 ```
 
 The script uses *[Flickr](https://www.flickr.com/)™* and *[Mapbox](https://www.mapbox.com/)™* APIs. To get and use these APIs follow the instructions below.
