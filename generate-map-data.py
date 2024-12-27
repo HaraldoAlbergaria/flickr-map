@@ -109,15 +109,18 @@ except:
     print("ERROR: FATAL: Unable to get user id")
     sys.exit()
 
+# get user info
+user_info = flickr.people.getInfo(api_key=api_key, user_id=user_id)
+
 # get the username
 try:
-    user_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['username']['_content']
+    user_name = user_info['person']['username']['_content']
 except:
     print("ERROR: FATAL: Unable to get user name")
     sys.exit()
 
 try:
-    real_name = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['realname']['_content']
+    real_name = user_info['person']['realname']['_content']
     if len(real_name) > 0:
         user_name = real_name
 except:
@@ -136,10 +139,15 @@ else:
 
 # get user's photos base url
 try:
-    photos_base_url = flickr.people.getInfo(api_key=api_key, user_id=user_id)['person']['photosurl']['_content']
+    photos_base_url = user_info['person']['photosurl']['_content']
 except:
     print("ERROR: FATAL: Unable to get photos base url")
     sys.exit()
+
+try:
+    user_location = user_info['person']['location']['_content']
+except:
+    user_location = ""
 
 # stores the coordinates fo the markers
 coordinates = []
@@ -367,12 +375,9 @@ for marker_info in coordinates:
     latitude = float(marker_info[0][1])
 
     # get country code and name
-    try:
-        country_info = getCountryInfo(latitude, longitude)
-        country_code = country_info[0]
-        country_name = country_info[1]
-    except:
-        pass
+    country_info = getCountryInfo(latitude, longitude)
+    country_code = country_info[0]
+    country_name = country_info[1]
 
     # add country to countries dictionary
     if country_code != '':
@@ -448,6 +453,7 @@ locations_file.close()
 # get total number of markers and photos to write to user file
 n_markers = getNumberOfMarkers(locations_dict)
 n_photos = getNumberOfPhotos(locations_dict)
+n_countries = len(countries_dict)
 
 # write user information to file
 
@@ -458,6 +464,8 @@ user_file.write("  \'alias\': \'{}\',\n".format(user_alias))
 user_file.write("  \'name\': \'{}\',\n".format(user_name.replace("\'", "\\\'")))
 user_file.write("  \'avatar\': \'{}\',\n".format(user_avatar))
 user_file.write("  \'url\': \'{}\',\n".format(photos_base_url))
+user_file.write("  \'location\': \'{}\',\n".format(user_location))
+user_file.write("  \'countries\': {},\n".format(n_countries))
 user_file.write("  \'markers\': {},\n".format(n_markers))
 user_file.write("  \'photos\': {}\n".format(n_photos))
 user_file.write("}\n")
