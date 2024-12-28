@@ -1,0 +1,5 @@
+api_credentials.py
+log
+*.sh
+docs/example/not_found.py
+__pycache__
