@@ -15,6 +15,7 @@ import time
 import math
 import random
 
+from coords import coords_dict
 from countries_info import getCountryInfo
 
 
@@ -150,7 +151,7 @@ except:
     user_location = ""
 
 # stores the coordinates fo the markers
-coordinates = []
+coords = []
 
 # set script mode (photoset or photostream) and get the total number of photos
 try:
@@ -262,7 +263,7 @@ for pg in range(1, npages+1):
 
             # read each markers coordinates and append photo in case
             # there is already a marker on the same coordinate
-            for coord in coordinates:
+            for coord in coords:
                 if longitude == coord[0][0] and latitude == coord[0][1]:
                     coord[1].append([photo['id'], photo['url_sq']])
                     marker_exists = True
@@ -270,7 +271,7 @@ for pg in range(1, npages+1):
 
             # create a new marker to be added to the map
             if not marker_exists:
-                coordinates.append([[longitude, latitude], [[photo['id'], photo['url_sq']]]])
+                coords.append([[longitude, latitude], [[photo['id'], photo['url_sq']]]])
                 n_markers += 1
 
         proc_photos += 1
@@ -326,16 +327,16 @@ for country in locations_dict:
         #n_photos = len(photos_info)
 
         # get number of photos (coordinates) to be added to map
-        n_coords = len(coordinates)
+        n_coords = len(coords)
 
         # iterate over each coordinate
         for coord in range(n_coords-1, -1, -1):
 
             # if there is already a marker on the same coordinate
-            if coordinates[coord][0] == marker[0]:
+            if coords[coord][0] == marker[0]:
 
                 # read each photo already on the marker
-                for photo in coordinates[coord][1]:
+                for photo in coords[coord][1]:
                     photo_id = photo[0]
                     thumb_url = photo[1]
 
@@ -346,7 +347,7 @@ for country in locations_dict:
 
                 # remove photo info from
                 # coordinates to be added
-                coordinates.pop(coord)
+                coords.pop(coord)
 
         # update the number of photos on marker
         marker[1] = photos_info
@@ -356,17 +357,17 @@ if new_photos > 0:
 
 # reverse the coordinates order so
 # the newest ones go to the end
-coordinates.reverse()
+coords.reverse()
 
 # check if there is remaining markers to be added
-n_markers = len(coordinates)
+n_markers = len(coords)
 if n_markers > 0:
     print('{} new marker(s) will be added to the map'.format(n_markers))
 
 new_markers = 0
 
 # iterate over each marker to be added
-for marker_info in coordinates:
+for marker_info in coords:
 
     new_markers += 1
 
@@ -375,9 +376,10 @@ for marker_info in coordinates:
     latitude = float(marker_info[0][1])
 
     # get country code and name
-    country_info = getCountryInfo(latitude, longitude)
+    country_info = getCountryInfo(latitude, longitude, coords_dict)
     country_code = country_info[0]
     country_name = country_info[1]
+    coords_dict = country_info[2]
 
     # add country to countries dictionary
     if country_code != '':
@@ -449,6 +451,22 @@ for country_code in locations_dict:
 
 locations_file.write("}\n")
 locations_file.close()
+
+# write coordinates dictionary to file
+coordinates_file = open("{}/coords.py".format(run_path), 'w')
+coordinates_file.write("coords_dict = {\n")
+
+i = 1
+for key in coords_dict:
+    coordinates_file.write("  \'{}\': {}".format(key, coords_dict[key]))
+    if i < len(coords_dict):
+        coordinates_file.write(",\n")
+    else:
+        coordinates_file.write("\n")
+    i += 1
+
+coordinates_file.write("}\n")
+coordinates_file.close()
 
 # get total number of markers and photos to write to user file
 n_markers = getNumberOfMarkers(locations_dict)
