@@ -195,19 +195,20 @@ if os.path.exists("{}/last_total.py".format(run_path)):
 # to process only the new photos, otherwise
 # (photos were deleted), run in all
 # photostream to update the entire map
-if delta_total > 0:
-    if total != delta_total:
-        total = delta_total
-        print('{} new photo(s) added'.format(total))
-else:
-    n_deleted = abs(delta_total)
-    if os.path.exists("{}/locations.py".format(run_path)):
-        os.system("rm {}/locations.py".format(run_path))
-    if os.path.exists("{}/countries.py".format(run_path)):
-        os.system("rm {}/countries.py".format(run_path))
-    if os.path.exists("{}/user.py".format(run_path)):
-        os.system("rm {}/user.py".format(run_path))
-    print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
+if mode == 'photostream':
+    if delta_total > 0:
+        if total != delta_total:
+            total = delta_total
+            print('{} new photo(s) added'.format(total))
+    else:
+        n_deleted = abs(delta_total)
+        if os.path.exists("{}/locations.py".format(run_path)):
+            os.system("rm {}/locations.py".format(run_path))
+        if os.path.exists("{}/countries.py".format(run_path)):
+            os.system("rm {}/countries.py".format(run_path))
+        if os.path.exists("{}/user.py".format(run_path)):
+            os.system("rm {}/user.py".format(run_path))
+        print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
 
 
 print('Extracting photo coordinates and ids...')
