@@ -85,6 +85,7 @@ def getInfoFromMapBox(latlong):
 
 def getCountryInfo(lat, long, coords_dict):
 
+    use_matrix = countries_config.use_matrix
     use_mapbox = countries_config.use_mapbox
     nominatim_exclude = countries_config.nominatim_exclude
     geonames_exclude = countries_config.geonames_exclude
@@ -147,16 +148,17 @@ def getCountryInfo(lat, long, coords_dict):
     elif lat_long in not_found_places_excludes:
             log_file.write("{} not skipped: [{}, {}] is at not found excludes\n".format(latlong, latitude, longitude))
 
-    try:
-        lat_codes = latitude_dict[latitude]
-        long_codes = longitude_dict[longitude]
-        codes = lat_codes.intersection(long_codes)
-    except:
-        if gen_err_file:
-            err_file.write("Matrix: ERROR: Key error at [{}, {}]\n".format(latitude, longitude))
-        codes = []
+    if use_matrix:
+        try:
+            lat_codes = latitude_dict[latitude]
+            long_codes = longitude_dict[longitude]
+            codes = lat_codes.intersection(long_codes)
+        except:
+            if gen_err_file:
+                err_file.write("Matrix: ERROR: Key error at [{}, {}]\n".format(latitude, longitude))
+            codes = []
 
-    if len(codes) == 1:
+    if use_matrix and len(codes) == 1:
         code = codes.pop()
         name = countries_dict[code][0]
         if gen_rep_file and rep_matrix:
@@ -375,7 +377,7 @@ countries_dict = {
     'AL': ['Albania', [[19.3044861183, 39.624997667, 21.0200403175, 42.6882473822]]],
     'AM': ['Armenia', [[43.5827458026, 38.7412014837, 46.5057198423, 41.2481285671]]],
     'AO': ['Angola', [[11.6400960629, -17.9306364885, 24.0799052263, -4.43802336998]]],
-    'AQ': ['Antarctic Peninsula', [[-87, -76, -36, -58]]],
+    'AQ': ['Antarctica', [[-179.999, -90, 179.999, -58]]],
     'AR': ['Argentina', [[-73.4154357571, -55.25, -53.628348965, -21.8323104794]]],
     'AT': ['Austria', [[9.47996951665, 46.4318173285, 16.9796667823, 49.0390742051]]],
     'AU': ['Australia', [[111.338953078, -44.6345972634, 164.569469029, -9.6681857235]]],
