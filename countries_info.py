@@ -170,6 +170,12 @@ def getCountryInfo(lat, long, coords_dict):
         code = info[0]
         name = info[1]
 
+        try:
+            if name != countries_dict[code][0]:
+                name = countries_dict[code][0]
+        except:
+            pass
+
         if code != '':
             if gen_rep_file:
                 if rep_dictionary:
@@ -210,7 +216,7 @@ def getCountryInfo(lat, long, coords_dict):
             code = info[0]
             name = info[1]
 
-            if (code == '*' and use_mapbox) or (code in geonames_exclude and use_mapbox):
+            if (code == '*' or code in geonames_exclude) and use_mapbox:
                 code = ''
                 name = ''
 
@@ -224,9 +230,12 @@ def getCountryInfo(lat, long, coords_dict):
         try:
             if name != countries_dict[code][0]:
                 if gen_rep_file:
-                    rep_file.write("\'{}: {}\' = \'{}\' ".format(code, name, countries_dict[code][0]))
+                    rep_file.write("--> \'{}: {}\' = \'{}\' ".format(code, name, countries_dict[code][0]))
                 try:
                     code = codes_dict[name]
+                except:
+                    pass
+                try:
                     name = countries_dict[code][0]
                     if gen_rep_file:
                         rep_file.write("=> \'{}: {}'\n".format(code, name))
@@ -234,8 +243,8 @@ def getCountryInfo(lat, long, coords_dict):
                     if gen_rep_file:
                         rep_file.write("\n")
         except:
-            if code != '' and code != '*':
-                rep_file.write("\'{}: {}\' = NOT FOUND AT DICTIONARY\n".format(code, name))
+            if gen_rep_file and code != '' and code != '*':
+                rep_file.write("--> \'{}: {}\' = NOT FOUND AT DICTIONARY\n".format(code, name))
 
         # check if location is in a territory of another country
         try:
@@ -267,7 +276,6 @@ def getCountryInfo(lat, long, coords_dict):
                     rep_file.write("---> MapBox: {} => \'{}: {}\'\n".format(latlong, code, name))
 
         if not use_mapbox and (code == '' or is_territory):
-
             if is_territory:
                 htm_file.write("unable to find the name of the location<br>\n".format(code, name))
                 log_file.write("unable to find the name of the location\n".format(code, name))
@@ -276,9 +284,12 @@ def getCountryInfo(lat, long, coords_dict):
         try:
             if name != countries_dict[code][0]:
                 if gen_rep_file:
-                    rep_file.write("\'{}: {}\' = \'{}\' ".format(code, name, countries_dict[code][0]))
+                    rep_file.write("---> \'{}: {}\' = \'{}\' ".format(code, name, countries_dict[code][0]))
                 try:
                     code = codes_dict[name]
+                except:
+                    pass
+                try:
                     name = countries_dict[code][0]
                     if gen_rep_file:
                         rep_file.write("=> \'{}: {}'\n".format(code, name))
@@ -287,7 +298,7 @@ def getCountryInfo(lat, long, coords_dict):
                         rep_file.write("\n")
         except:
             if code != '' and code != '*':
-                rep_file.write("\'{}: {}\' = NOT FOUND AT DICTIONARY\n".format(code, name))
+                rep_file.write("---> \'{}: {}\' = NOT FOUND AT DICTIONARY\n".format(code, name))
 
         # add coordinate to dicitionary
         if code != '' and code != '*' and code != '**':
@@ -942,8 +953,8 @@ longitude_dict = {
   -60: {'FK', 'GL', 'GY', 'VE', 'AR', 'CA', 'BB', 'AQ', 'PY', 'BR', 'BO'},
   -59: {'FK', 'GY', 'GL', 'SR', 'AR', 'CA', 'PY', 'AQ', 'BR', 'BO', 'UY'},
   -58: {'FK', 'GY', 'GL', 'SR', 'AR', 'CA', 'PY', 'AQ', 'BR', 'BO', 'UY'},
-  -57: {'GY', 'GL', 'SR', 'AR', 'CA', 'PY', 'AQ', 'BR', 'UY'},
-  -56: {'GL', 'SR', 'AR', 'CA', 'AQ', 'PY', 'BR', 'UY'},
+  -57: {'FK', 'GY', 'GL', 'SR', 'AR', 'CA', 'PY', 'AQ', 'BR', 'UY'},
+  -56: {'FK', 'GL', 'SR', 'AR', 'CA', 'AQ', 'PY', 'BR', 'UY'},
   -55: {'GL', 'SR', 'AR', 'CA', 'AQ', 'PY', 'BR', 'FR', 'UY'},
   -54: {'GL', 'SR', 'AR', 'CA', 'AQ', 'BR', 'FR', 'UY'},
   -53: {'BR', 'FR', 'AQ', 'GL'},
