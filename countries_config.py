@@ -12,6 +12,7 @@ reset_coords = False
 
 # control if countries matrix will be used
 use_matrix = True
+update_matrix = False
 
 # control if MapBox geocoder will be used on territories
 use_mapbox = True

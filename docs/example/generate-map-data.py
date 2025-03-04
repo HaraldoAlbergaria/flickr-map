@@ -15,8 +15,10 @@ import time
 import math
 import random
 
+from matrix import matrix_dict
 from coords import coords_dict
 from countries_info import getCountryInfo
+from countries_config import update_matrix
 
 
 # ================= CONFIGURATION VARIABLES =====================
@@ -377,13 +379,15 @@ for marker_info in coords:
     latitude = float(marker_info[0][1])
 
     # get country code and name
-    country_info = getCountryInfo(latitude, longitude, coords_dict)
+    country_info = getCountryInfo(latitude, longitude, matrix_dict, coords_dict)
     country_code = country_info[0]
     country_name = country_info[1]
-    coords_dict = country_info[2]
+    if update_matrix:
+        matrix_dict = country_info[2]
+    coords_dict = country_info[3]
 
     # add country to countries dictionary
-    if country_code != '':
+    if country_code != '' and country_code != '*':
         if country_code not in countries_dict:
             countries_dict[country_code] = [country_name, 0 , 0]
         else:
@@ -452,6 +456,23 @@ for country_code in locations_dict:
 
 locations_file.write("}\n")
 locations_file.close()
+
+if update_matrix:
+    # write matrix dictionary to file
+    matrix_file = open("{}/matrix.py".format(run_path), 'w')
+    matrix_file.write("matrix_dict = {\n")
+
+    i = 1
+    for key in matrix_dict:
+        matrix_file.write("  \'{}\': {}".format(key, matrix_dict[key]))
+        if i < len(matrix_dict):
+            matrix_file.write(",\n")
+        else:
+            matrix_file.write("\n")
+        i += 1
+
+    matrix_file.write("}\n")
+    matrix_file.close()
 
 # write coordinates dictionary to file
 coordinates_file = open("{}/coords.py".format(run_path), 'w')

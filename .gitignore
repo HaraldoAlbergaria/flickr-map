@@ -1,5 +1,7 @@
 api_credentials.py
 log
 *.sh
+docs/example/matrix.py
 docs/example/not_found.py
+gen_matrix_file
 __pycache__
