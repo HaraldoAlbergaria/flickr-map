@@ -31,15 +31,26 @@ max_number_of_photos = max_number_of_pages * int(photos_per_page)
 
 # ===============================================================
 
-
 # get full script's path
 run_path = os.path.dirname(os.path.realpath(__file__))
+
+# github resources path
+github_raw_path = "https://raw.githubusercontent.com/the-map-group/the-map-group.github.io/refs/heads/main"
+
+# open log file
+try:
+    log_file = open("{}/log".format(run_path), "a")
+except Exception as e:
+    print("ERROR: FATAL: Unable to open log file")
+    print(e)
+    sys.exit()
 
 # check if there is a config file and import it
 if os.path.exists("{}/config.py".format(run_path)):
     import config
 else:
     print("ERROR: File 'config.py' not found. Create one and try again.")
+    log_file.write("ERROR: File 'config.py' not found. Create one and try again.")
     sys.exit()
 
 # check if there is a api_credentials file and import it
@@ -47,6 +58,7 @@ if os.path.exists("{}/api_credentials.py".format(run_path)):
     import api_credentials
 else:
     print("ERROR: File 'api_credentials.py' not found. Create one and try again.")
+    log_file.write("ERROR: File 'api_credentials.py' not found. Create one and try again.")
     sys.exit()
 
 # Credentials
@@ -108,8 +120,11 @@ user_alias = config.user
 # get user id from user url on config file
 try:
     user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(user_alias))['user']['id']
-except:
+except Exception as e:
     print("ERROR: FATAL: Unable to get user id")
+    print(e)
+    log_file.write("ERROR: FATAL: Unable to get user id\n")
+    log_file.write(e)
     sys.exit()
 
 # get user info
@@ -118,8 +133,11 @@ user_info = flickr.people.getInfo(api_key=api_key, user_id=user_id)
 # get the username
 try:
     user_name = user_info['person']['username']['_content']
-except:
+except Exception as e:
     print("ERROR: FATAL: Unable to get user name")
+    print(e)
+    log_file.write("ERROR: FATAL: Unable to get user name\n")
+    log_file.write(e)
     sys.exit()
 
 try:
@@ -138,13 +156,16 @@ os.system("wget -q {}".format(user_avatar))
 if os.path.exists("{}_r.jpg".format(user_id)):
     os.system("rm {}_r.jpg".format(user_id))
 else:
-    user_avatar = "../../icons/photographer.svg"
+    user_avatar = "{}/icons/photographer.svg".format(github_raw_path)
 
 # get user's photos base url
 try:
     photos_base_url = user_info['person']['photosurl']['_content']
-except:
+except Exception as e:
     print("ERROR: FATAL: Unable to get photos base url")
+    print(e)
+    log_file.write("ERROR: FATAL: Unable to get photos base url\n")
+    log_file.write(e)
     sys.exit()
 
 try:
@@ -163,20 +184,29 @@ try:
     print('Generating map for \'{}\''.format(user_name))
     print('Photoset \'{}\''.format(photos['photoset']['title']))
     print('{} photos in the photoset'.format(total))
+    log_file.write('Generating map for \'{}\'\n'.format(user_name))
+    log_file.write('Photoset \'{}\'\n'.format(photos['photoset']['title']))
+    log_file.write('{} photos in the photoset\n'.format(total))
     mode = 'photoset'
 except:
     try:
         photos = flickr.people.getPublicPhotos(api_key=api_key, user_id=user_id, content_types=0, per_page=photos_per_page)
         npages = int(photos['photos']['pages'])
         total = int(photos['photos']['total'])
-    except:
+    except Exception as e:
         print("ERROR: FATAL: Unable to get photos")
+        print(e)
+        log_file.write("ERROR: FATAL: Unable to get photos\n")
+        log_file.write(e)
         sys.exit()
 
     if config.photoset_id != '':
         print('ERROR: Invalid photoset id.\nSwitching to user\'s photostream...')
+        log_file.write('ERROR: Invalid photoset id.\nSwitching to user\'s photostream...\n')
     print('Generating map for \'{}\''.format(user_name))
     print('{} photos in the photostream'.format(total))
+    log_file.write('Generating map for \'{}\'\n'.format(user_name))
+    log_file.write('{} photos in the photostream\n'.format(total))
     mode = 'photostream'
 
 # current number of photos on photostream
@@ -191,6 +221,7 @@ if os.path.exists("{}/last_total.py".format(run_path)):
     delta_total = int(current_total) - int(last_total.number)
     if delta_total == 0:
         print('No changes on number of photos since last run.\nAborted.')
+        log_file.write('No changes on number of photos since last run.\nAborted.\n')
         sys.exit()
 
 # if difference > 0, makes total = delta_total
@@ -202,6 +233,7 @@ if mode == 'photostream':
         if total != delta_total:
             total = delta_total
             print('{} new photo(s) added'.format(total))
+            log_file.write('{} new photo(s) added\n'.format(total))
     else:
         n_deleted = abs(delta_total)
         if os.path.exists("{}/locations.py".format(run_path)):
@@ -211,9 +243,11 @@ if mode == 'photostream':
         if os.path.exists("{}/user.py".format(run_path)):
             os.system("rm {}/user.py".format(run_path))
         print('{} photo(s) deleted from photostream.\nThe corresponding markers will also be deleted'.format(n_deleted))
+        log_file.write('{} photo(s) deleted from photostream.\nThe corresponding markers will alse be deleted\n'.format(n_deleted))
 
 
 print('Extracting photo coordinates and ids...')
+log_file.write('Extracting photo coordinates and ids...\n')
 
 # get number of pages to be processed
 npages = math.ceil(total/int(photos_per_page))
@@ -227,6 +261,7 @@ if npages > max_number_of_pages:
     npages = max_number_of_pages
     total = max_number_of_pages * int(photos_per_page);
     print("Extracting for the last {} photos".format(total))
+    log_file.write("Extracting for the last {} photos\n".format(total))
 
 # counts the number of processed photos
 proc_photos = 0
@@ -240,8 +275,11 @@ for pg in range(1, npages+1):
             page = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, content_types=0, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photoset']['photo']
         else:
             page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, content_types=0, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
-    except:
+    except Exception as e:
         print("ERROR: FATAL: Unable to get photos")
+        print(e)
+        log_file.write("ERROR: FATAL: Unable to get photos\n")
+        log_file.write(e)
         sys.exit()
 
     photos_in_page = len(page)
@@ -284,15 +322,18 @@ for pg in range(1, npages+1):
            break
 
     print('Batch {0}/{1} | {2} photo(s) in {3} marker(s)'.format(pg, npages, n_photos, n_markers), end='\r')
+    log_file.write('Batch {0}/{1} | {2} photo(s) in {3} marker(s)\r'.format(pg, npages, n_photos, n_markers))
 
     # stop processing pages if any limit was reached
     if n_photos >= total:
         break
     if n_photos >= max_number_of_photos:
         print("\nMaximum number of photos on map reached!", end='')
+        log_file.write("\nMaximum number of photos on map reached!")
         break
 
 print('\nAdding marker(s) to map...')
+log_file.write('\nAdding marker(s) to map...\n')
 
 # check if there is a file with the markers on map already
 # and import it otherwise created a new variable
@@ -305,6 +346,7 @@ else:
 n_markers = getNumberOfMarkers(locations_dict)
 if n_markers > 0:
     print('Map already has {} marker(s)'.format(n_markers))
+    log_file.write('Map already has {} marker(s)\n'.format(n_markers))
 
 # check if there is file with the countries already mapped
 if os.path.exists("{}/countries.py".format(run_path)):
@@ -357,6 +399,7 @@ for country in locations_dict:
 
 if new_photos > 0:
     print('Added {} new photo(s) to existing markers'.format(new_photos))
+    log_file.write('Added {} new photo(s) to existing markers\n'.format(new_photos))
 
 # reverse the coordinates order so
 # the newest ones go to the end
@@ -366,6 +409,7 @@ coords.reverse()
 n_markers = len(coords)
 if n_markers > 0:
     print('{} new marker(s) will be added to the map'.format(n_markers))
+    log_file.write('{} new marker(s) will be added to the map\n'.format(n_markers))
 
 new_markers = 0
 
@@ -401,14 +445,17 @@ for marker_info in coords:
         locations_dict[country_code].append(marker_info)
 
     print('Added marker {0}/{1}'.format(new_markers, n_markers), end='\r')
+    log_file.write('Added marker {0}/{1}\r'.format(new_markers, n_markers))
 
 # finish script
 if new_markers > 0:
     print('')
 else:
     print('No new markers were added to the map')
+    log_file.write('No new markers were added to the map')
 
 print('Finished!')
+log_file.write('\nFinished!\n')
 
 # write countries dictionary to file
 countries_file = open("{}/countries.py".format(run_path), 'w')
@@ -512,3 +559,5 @@ user_file.write("}\n")
 user_file.close()
 
 updateLastTotalFile(run_path, current_total)
+
+log_file.close()
