@@ -39,7 +39,7 @@ github_raw_path = "https://raw.githubusercontent.com/the-map-group/the-map-group
 
 # open log file
 try:
-    log_file = open("{}/log".format(run_path), "a")
+    log_file = open("{}/map.log".format(run_path), "a")
 except Exception as e:
     print("ERROR: FATAL: Unable to open log file")
     print(e)
@@ -322,18 +322,18 @@ for pg in range(1, npages+1):
            break
 
     print('Batch {0}/{1} | {2} photo(s) in {3} marker(s)'.format(pg, npages, n_photos, n_markers), end='\r')
-    log_file.write('Batch {0}/{1} | {2} photo(s) in {3} marker(s)\r'.format(pg, npages, n_photos, n_markers))
+    log_file.write('Batch {0}/{1} | {2} photo(s) in {3} marker(s)\n'.format(pg, npages, n_photos, n_markers))
 
     # stop processing pages if any limit was reached
     if n_photos >= total:
         break
     if n_photos >= max_number_of_photos:
         print("\nMaximum number of photos on map reached!", end='')
-        log_file.write("\nMaximum number of photos on map reached!")
+        log_file.write("Maximum number of photos on map reached!")
         break
 
 print('\nAdding marker(s) to map...')
-log_file.write('\nAdding marker(s) to map...\n')
+log_file.write('Adding marker(s) to map...\n')
 
 # check if there is a file with the markers on map already
 # and import it otherwise created a new variable
@@ -445,17 +445,17 @@ for marker_info in coords:
         locations_dict[country_code].append(marker_info)
 
     print('Added marker {0}/{1}'.format(new_markers, n_markers), end='\r')
-    log_file.write('Added marker {0}/{1}\r'.format(new_markers, n_markers))
+    log_file.write('Added marker {0}/{1}\n'.format(new_markers, n_markers))
 
 # finish script
 if new_markers > 0:
     print('')
 else:
     print('No new markers were added to the map')
-    log_file.write('No new markers were added to the map')
+    log_file.write('No new markers were added to the map\n')
 
 print('Finished!')
-log_file.write('\nFinished!\n')
+log_file.write('Finished!\n')
 
 # write countries dictionary to file
 countries_file = open("{}/countries.py".format(run_path), 'w')
