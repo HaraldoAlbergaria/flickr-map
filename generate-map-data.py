@@ -42,7 +42,7 @@ try:
     log_file = open("{}/map.log".format(run_path), "a")
 except Exception as e:
     print("ERROR: FATAL: Unable to open log file")
-    print(e)
+    print(str(e))
     sys.exit()
 
 # check if there is a config file and import it
@@ -122,9 +122,9 @@ try:
     user_id = flickr.urls.lookupUser(api_key=api_key, url='flickr.com/people/{}'.format(user_alias))['user']['id']
 except Exception as e:
     print("ERROR: FATAL: Unable to get user id")
-    print(e)
+    print(str(e))
     log_file.write("ERROR: FATAL: Unable to get user id\n")
-    log_file.write(e)
+    log_file.write(str(e))
     sys.exit()
 
 # get user info
@@ -135,9 +135,9 @@ try:
     user_name = user_info['person']['username']['_content']
 except Exception as e:
     print("ERROR: FATAL: Unable to get user name")
-    print(e)
+    print(str(e))
     log_file.write("ERROR: FATAL: Unable to get user name\n")
-    log_file.write(e)
+    log_file.write(str(e))
     sys.exit()
 
 try:
@@ -163,9 +163,9 @@ try:
     photos_base_url = user_info['person']['photosurl']['_content']
 except Exception as e:
     print("ERROR: FATAL: Unable to get photos base url")
-    print(e)
+    print(str(e))
     log_file.write("ERROR: FATAL: Unable to get photos base url\n")
-    log_file.write(e)
+    log_file.write(str(e))
     sys.exit()
 
 try:
@@ -195,9 +195,9 @@ except:
         total = int(photos['photos']['total'])
     except Exception as e:
         print("ERROR: FATAL: Unable to get photos")
-        print(e)
+        print(str(e))
         log_file.write("ERROR: FATAL: Unable to get photos\n")
-        log_file.write(e)
+        log_file.write(str(e))
         sys.exit()
 
     if config.photoset_id != '':
@@ -277,9 +277,9 @@ for pg in range(1, npages+1):
             page = flickr.people.getPhotos(api_key=api_key, user_id=user_id, privacy_filter=config.photo_privacy, content_types=0, extras='geo,tags,url_sq', page=pg, per_page=photos_per_page)['photos']['photo']
     except Exception as e:
         print("ERROR: FATAL: Unable to get photos")
-        print(e)
+        print(str(e))
         log_file.write("ERROR: FATAL: Unable to get photos\n")
-        log_file.write(e)
+        log_file.write(str(e))
         sys.exit()
 
     photos_in_page = len(page)
