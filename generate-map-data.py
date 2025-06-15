@@ -49,16 +49,16 @@ except Exception as e:
 if os.path.exists("{}/config.py".format(run_path)):
     import config
 else:
-    print("ERROR: File 'config.py' not found. Create one and try again.")
-    log_file.write("ERROR: File 'config.py' not found. Create one and try again.")
+    print("ERROR: FATAL: File 'config.py' not found. Create one and try again.")
+    log_file.write("ERROR: FATAL: File 'config.py' not found. Create one and try again.")
     sys.exit()
 
 # check if there is a api_credentials file and import it
 if os.path.exists("{}/api_credentials.py".format(run_path)):
     import api_credentials
 else:
-    print("ERROR: File 'api_credentials.py' not found. Create one and try again.")
-    log_file.write("ERROR: File 'api_credentials.py' not found. Create one and try again.")
+    print("ERROR: FATAL: File 'api_credentials.py' not found. Create one and try again.")
+    log_file.write("ERROR: FATAL: File 'api_credentials.py' not found. Create one and try again.")
     sys.exit()
 
 # Credentials
@@ -128,7 +128,14 @@ except Exception as e:
     sys.exit()
 
 # get user info
-user_info = flickr.people.getInfo(api_key=api_key, user_id=user_id)
+try:
+    user_info = flickr.people.getInfo(api_key=api_key, user_id=user_id)
+except Exception as e:
+    print("ERROR: FATAL: Unable to get user info")
+    print(str(e))
+    log_file.write("ERROR: FATAL: Unable to get user info\n")
+    log_file.write('{}\n'.format(str(e)))
+    sys.exit()
 
 # get the username
 try:
