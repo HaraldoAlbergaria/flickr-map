@@ -183,49 +183,50 @@ except:
 # stores the coordinates fo the markers
 coords = []
 
-# set script mode (photoset or photostream) and get the total number of photos
-try:
-    photos = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, content_types=0, per_page=photos_per_page)
-    npages = int(photos['photoset']['pages'])
-    total = int(photos['photoset']['total'])
-    print('Generating map for \'{}\''.format(user_name))
-    print('Photoset \'{}\''.format(photos['photoset']['title']))
-    print('{} photos in the photoset'.format(total))
-    log_file.write('Generating map for \'{}\'\n'.format(user_name))
-    log_file.write('Photoset \'{}\'\n'.format(photos['photoset']['title']))
-    log_file.write('{} photos in the photoset\n'.format(total))
+# set script mode (photoset or photostream)
+if config.photoset_id != '':
     mode = 'photoset'
-except:
-    max_tries = 10
-    for tries in range(1, max_tries+1):
-        try:
+else:
+    mode = 'photostream'
+
+# get the total number of photos
+max_tries = 10
+
+for tries in range(1, max_tries+1):
+    try:
+        if mode == 'photoset':
+            photos = flickr.photosets.getPhotos(api_key=api_key, user_id=user_id, photoset_id=config.photoset_id, privacy_filter=config.photo_privacy, content_types=0, per_page=photos_per_page)
+            npages = int(photos['photoset']['pages'])
+            total = int(photos['photoset']['total'])
+            print('Generating map for \'{}\''.format(user_name))
+            print('Photoset \'{}\''.format(photos['photoset']['title']))
+            print('{} photos in the photoset'.format(total))
+            log_file.write('Generating map for \'{}\'\n'.format(user_name))
+            log_file.write('Photoset \'{}\'\n'.format(photos['photoset']['title']))
+            log_file.write('{} photos in the photoset\n'.format(total))
+        else:
             photos = flickr.people.getPublicPhotos(api_key=api_key, user_id=user_id, content_types=0, per_page=photos_per_page)
             npages = int(photos['photos']['pages'])
             total = int(photos['photos']['total'])
-            break
-        except Exception as e:
-            if tries < max_tries:
-                print("ERROR: Unable to get photos")
-                print(str(e))
-                print('Trying again...')
-                log_file.write("ERROR: Unable to get photos\n")
-                log_file.write('{}\n'.format(str(e)))
-                log_file.write('Trying again...\n')
-            else:
-                print("ERROR: FATAL: Unable to get photos after {}".format(max_tries))
-                print(str(e))
-                log_file.write("ERROR: FATAL: Unable to get photos after {} tries\n".format(max_tries))
-                log_file.write('{}\n'.format(str(e)))
-                sys.exit()
-
-    if config.photoset_id != '':
-        print('ERROR: Invalid photoset id.\nSwitching to user\'s photostream...')
-        log_file.write('ERROR: Invalid photoset id.\nSwitching to user\'s photostream...\n')
-    print('Generating map for \'{}\''.format(user_name))
-    print('{} photos in the photostream'.format(total))
-    log_file.write('Generating map for \'{}\'\n'.format(user_name))
-    log_file.write('{} photos in the photostream\n'.format(total))
-    mode = 'photostream'
+            print('Generating map for \'{}\''.format(user_name))
+            print('{} photos in the photostream'.format(total))
+            log_file.write('Generating map for \'{}\'\n'.format(user_name))
+            log_file.write('{} photos in the photostream\n'.format(total))
+        break
+    except Exception as e:
+        if tries < max_tries:
+            print("ERROR: Unable to get photos")
+            print(str(e))
+            print('Trying again...')
+            log_file.write("ERROR: Unable to get photos\n")
+            log_file.write('{}\n'.format(str(e)))
+            log_file.write('Trying again...\n')
+        else:
+            print("ERROR: FATAL: Unable to get photos after {}".format(max_tries))
+            print(str(e))
+            log_file.write("ERROR: FATAL: Unable to get photos after {} tries\n".format(max_tries))
+            log_file.write('{}\n'.format(str(e)))
+            sys.exit()
 
 # current number of photos on photostream
 current_total = total
