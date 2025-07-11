@@ -158,12 +158,7 @@ if len(user_name) > 30:
     user_name = user_name[:30]
 
 # user avatar url
-user_avatar = "https://live.staticflickr.com/5674/buddyicons/{}_r.jpg".format(user_id)
-os.system("wget -q {}".format(user_avatar))
-if os.path.exists("{}_r.jpg".format(user_id)):
-    os.system("rm {}_r.jpg".format(user_id))
-else:
-    user_avatar = "{}/icons/photographer.svg".format(github_raw_path)
+user_avatar = "https://farm{}.staticflickr.com/{}/buddyicons/{}_r.jpg".format(user_info['person']['iconfarm'], user_info['person']['iconserver'], user_id)
 
 # get user's photos base url
 try:
