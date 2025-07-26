@@ -34,8 +34,9 @@ max_number_of_photos = max_number_of_pages * int(photos_per_page)
 # get full script's path
 run_path = os.path.dirname(os.path.realpath(__file__))
 
-# github resources path
-github_raw_path = "https://raw.githubusercontent.com/the-map-group/the-map-group.github.io/refs/heads/main"
+# remove fatal file
+if os.path.exists("{}/fatal".format(run_path)):
+    os.system("rm {}/fatal".format(run_path))
 
 # open log file
 try:
@@ -43,6 +44,7 @@ try:
 except Exception as e:
     print("ERROR: FATAL: Unable to open log file")
     print(str(e))
+    os.system("touch {}/fatal".format(run_path))
     sys.exit()
 
 # check if there is a config file and import it
@@ -51,6 +53,7 @@ if os.path.exists("{}/config.py".format(run_path)):
 else:
     print("ERROR: FATAL: File 'config.py' not found. Create one and try again.")
     log_file.write("ERROR: FATAL: File 'config.py' not found. Create one and try again.")
+    os.system("touch {}/fatal".format(run_path))
     sys.exit()
 
 # check if there is a api_credentials file and import it
@@ -59,6 +62,7 @@ if os.path.exists("{}/api_credentials.py".format(run_path)):
 else:
     print("ERROR: FATAL: File 'api_credentials.py' not found. Create one and try again.")
     log_file.write("ERROR: FATAL: File 'api_credentials.py' not found. Create one and try again.")
+    os.system("touch {}/fatal".format(run_path))
     sys.exit()
 
 # Credentials
@@ -125,6 +129,7 @@ except Exception as e:
     print(str(e))
     log_file.write("ERROR: FATAL: Unable to get user id\n")
     log_file.write('{}\n'.format(str(e)))
+    os.system("touch {}/fatal".format(run_path))
     sys.exit()
 
 # get user info
@@ -135,6 +140,7 @@ except Exception as e:
     print(str(e))
     log_file.write("ERROR: FATAL: Unable to get user info\n")
     log_file.write('{}\n'.format(str(e)))
+    os.system("touch {}/fatal".format(run_path))
     sys.exit()
 
 # get the username
@@ -145,6 +151,7 @@ except Exception as e:
     print(str(e))
     log_file.write("ERROR: FATAL: Unable to get user name\n")
     log_file.write('{}\n'.format(str(e)))
+    os.system("touch {}/fatal".format(run_path))
     sys.exit()
 
 try:
@@ -168,6 +175,7 @@ except Exception as e:
     print(str(e))
     log_file.write("ERROR: FATAL: Unable to get photos base url\n")
     log_file.write('{}\n'.format(str(e)))
+    os.system("touch {}/fatal".format(run_path))
     sys.exit()
 
 try:
@@ -221,6 +229,7 @@ for tries in range(1, max_tries+1):
             print(str(e))
             log_file.write("ERROR: FATAL: Unable to get photos after {} tries\n".format(max_tries))
             log_file.write('{}\n'.format(str(e)))
+            os.system("touch {}/fatal".format(run_path))
             sys.exit()
 
 # current number of photos on photostream
@@ -306,6 +315,7 @@ for pg in range(1, npages+1):
                 print(str(e))
                 log_file.write("ERROR: FATAL: Unable to get photos after {} tries\n".format(max_tries))
                 log_file.write('{}\n'.format(str(e)))
+                os.system("touch {}/fatal".format(run_path))
                 sys.exit()
 
     photos_in_page = len(page)
