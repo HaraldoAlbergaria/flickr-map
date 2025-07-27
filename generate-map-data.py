@@ -165,7 +165,13 @@ if len(user_name) > 30:
     user_name = user_name[:30]
 
 # user avatar url
-user_avatar = "https://farm{}.staticflickr.com/{}/buddyicons/{}_r.jpg".format(user_info['person']['iconfarm'], user_info['person']['iconserver'], user_id)
+icon_farm = user_info['person']['iconfarm']
+icon_server = user_info['person']['iconserver']
+
+if icon_farm != 0 and icon_server != 0:
+    user_avatar = "https://farm{}.staticflickr.com/{}/buddyicons/{}_r.jpg".format(icon_farm, icon_server, user_id)
+else:
+    user_avatar = "https://raw.githubusercontent.com/the-map-group/the-map-group.github.io/refs/heads/main/icons/photographer.svg"
 
 # get user's photos base url
 try:
